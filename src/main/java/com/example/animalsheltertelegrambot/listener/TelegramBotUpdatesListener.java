@@ -1,17 +1,11 @@
 package com.example.animalsheltertelegrambot.listener;
 
-import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
-import com.example.animalsheltertelegrambot.service.TelegramBotService;
+import com.example.animalsheltertelegrambot.service.ClientService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -22,21 +16,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
-    @Autowired
-    private TelegramBot telegramBot;
+    private final TelegramBot telegramBot;
+    private final ClientService clientService;
 
-    @Autowired
-    private TelegramBotService telegramBotService;
-
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
-    private AnimalRepository animalRepository;
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService) {
+        this.telegramBot = telegramBot;
+        this.clientService = clientService;
+    }
 
     @PostConstruct
     public void init() {
         telegramBot.setUpdatesListener(this);
+        clientService.setTelegramBot(this.telegramBot);
     }
 
     @Override
@@ -45,7 +36,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             logger.info("Processing update: {}", update);
 
             if (update.message().text().equals("/start")) {
-                telegramBotService.sendGreetings(update);
+                clientService.sendGreetings(update);
             } else {
 
             }
