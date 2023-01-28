@@ -53,7 +53,7 @@ public class ClientService {
                 text);
         SendResponse response = telegramBot.execute(message);
         if (!response.isOk()) {
-            logger.error("Could not send the greeting message! " +
+            logger.error("Could not send the safety requirements! " +
                     "Error code: {}", response.errorCode());
         }
     }
