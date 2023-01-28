@@ -10,6 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 @Service
 public class ClientService {
 
@@ -37,6 +41,28 @@ public class ClientService {
         if (!response.isOk()) {
             logger.error("Could not send the greeting message! " +
                     "Error code: {}", response.errorCode());
+        }
+    }
+
+    public void sendShelterDescription(Update update) throws IOException {
+        logger.info("Sending the description about the Shelter");
+        long chatId = update.message().chat().id();
+        SendMessage message = new SendMessage(chatId,
+                getContentAsString("src/main/resources/shelter-description.txt"));
+        SendResponse response = telegramBot.execute(message);
+        if (!response.isOk()) {
+            logger.error("Could not send the shelter description message! " +
+                    "Error code: {}", response.errorCode());
+        }
+    }
+
+    private String getContentAsString(String path) throws IOException {
+        try {
+            String content = new String(Files.readAllBytes(Paths.get(path)));
+            return content;
+        } catch (IOException e) {
+            logger.error("Error: The path not found");
+            return "Information is not available at the moment, please try again later";
         }
     }
 }
