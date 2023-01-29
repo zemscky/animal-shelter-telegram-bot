@@ -3,7 +3,7 @@
 -- changeset nmavro:1
 
 INSERT INTO shelter_message
-    (id, description, message_text)
+    (description, message_text)
 VALUES
     ('greetings', 'Привет! Я бот приюта для животных'),
     ('shelter description', 'Все мы знаем, что нашим маленьким друзьям очень часто приходится нелегко, и только мы можем им помочь.' ||
