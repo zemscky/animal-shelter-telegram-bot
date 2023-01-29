@@ -35,10 +35,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
 
-            if (update.message().text().equals("/start")) {
-                clientService.sendGreetings(update);
-            } else {
-
+            switch (update.message().text()) {
+                case "/start" -> clientService.sendGreetings(update);
+                case "/description" -> clientService.sendShelterDescription(update);
+                case "/callback" -> clientService.sendCallBackMessage(update);
             }
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;

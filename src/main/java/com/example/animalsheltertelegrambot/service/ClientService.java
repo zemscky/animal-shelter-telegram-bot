@@ -1,7 +1,9 @@
 package com.example.animalsheltertelegrambot.service;
 
+import com.example.animalsheltertelegrambot.models.ShelterMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
+import com.example.animalsheltertelegrambot.repositories.ShelterMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -10,9 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import static com.example.animalsheltertelegrambot.models.MessageId.*;
 
 @Service
 public class ClientService {
@@ -21,11 +21,13 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final AnimalRepository animalRepository;
+    private final ShelterMessageRepository messageRepository;
     private TelegramBot telegramBot;
 
-    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository) {
+    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, ShelterMessageRepository messageRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
+        this.messageRepository = messageRepository;
     }
 
     public void setTelegramBot(TelegramBot telegramBot) {
@@ -33,36 +35,36 @@ public class ClientService {
     }
 
     public void sendGreetings(Update update) {
-        logger.info("Sending the greeting message");
-        long chatId = update.message().chat().id();
-        SendMessage message = new SendMessage(chatId,
-                "Привет! Я бот приюта для животных");
-        SendResponse response = telegramBot.execute(message);
-        if (!response.isOk()) {
-            logger.error("Could not send the greeting message! " +
-                    "Error code: {}", response.errorCode());
-        }
+        sendDescription(update, this.messageRepository.findById(GREETINGS.getId()).
+                orElse(getNotFoundMessage()));
     }
 
-    public void sendShelterDescription(Update update) throws IOException {
-        logger.info("Sending the description about the Shelter");
-        long chatId = update.message().chat().id();
-        SendMessage message = new SendMessage(chatId,
-                getContentAsString("src/main/resources/shelter-description.txt"));
-        SendResponse response = telegramBot.execute(message);
-        if (!response.isOk()) {
-            logger.error("Could not send the shelter description message! " +
-                    "Error code: {}", response.errorCode());
-        }
+    public void sendShelterDescription(Update update) {
+        sendDescription(update, this.messageRepository.findById(SHELTER_DESCRIPTION.getId())
+                .orElse(getNotFoundMessage()));
     }
 
-    private String getContentAsString(String path) throws IOException {
-        try {
-            String content = new String(Files.readAllBytes(Paths.get(path)));
-            return content;
-        } catch (IOException e) {
-            logger.error("Error: The path not found");
-            return "Information is not available at the moment, please try again later";
+    public void sendCallBackMessage(Update update) {
+        sendDescription(update, this.messageRepository.findById(CALLBACK.getId())
+                .orElse(getNotFoundMessage()));
+    }
+
+    private ShelterMessage getNotFoundMessage() {
+        ShelterMessage sm = new ShelterMessage();
+        sm.setDescription("not found message");
+        sm.setMessageText("Information not found, please try again later");
+        return sm;
+    }
+
+    private void sendDescription(Update update, ShelterMessage shelterMessage) {
+        logger.info("Sending the " + shelterMessage.getDescription() + " message");
+        SendResponse response = telegramBot.execute(
+                new SendMessage(
+                update.message().chat().id(),
+                shelterMessage.getMessageText()));
+        if (!response.isOk()) {
+            logger.error("Could not send the " + shelterMessage.getDescription() + " message! " +
+                    "Error code: {}", response.errorCode());
         }
     }
 }
