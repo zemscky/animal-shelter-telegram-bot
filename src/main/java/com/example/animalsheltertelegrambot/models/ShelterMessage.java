@@ -8,34 +8,24 @@ import javax.persistence.Id;
 public class ShelterMessage {
     @Id
     @GeneratedValue
-    private long id;
+    private String tag;
 
-    private String description;
     private String messageText;
 
     public ShelterMessage() {
     }
 
-    public ShelterMessage(long id, String description, String text) {
-        this.id = id;
-        this.description = description;
+    public ShelterMessage(String tag, String text) {
+        this.tag = tag;
         this.messageText = text;
     }
 
-    public String getDescription() {
-        return description;
+    public String getTag() {
+        return tag;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public String getMessageText() {

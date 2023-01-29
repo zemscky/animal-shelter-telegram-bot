@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import static com.example.animalsheltertelegrambot.models.MessageId.*;
 
 @Service
 public class ClientService {
@@ -34,37 +33,27 @@ public class ClientService {
         this.telegramBot = telegramBot;
     }
 
-    public void sendGreetings(Update update) {
-        sendDescription(update, this.messageRepository.findById(GREETINGS.getId()).
-                orElse(getNotFoundMessage()));
-    }
+    public void sendMessage(Update update) {
+        logger.info("Sending the " + update.message().text() + " message");
 
-    public void sendShelterDescription(Update update) {
-        sendDescription(update, this.messageRepository.findById(SHELTER_DESCRIPTION.getId())
-                .orElse(getNotFoundMessage()));
-    }
-
-    public void sendCallBackMessage(Update update) {
-        sendDescription(update, this.messageRepository.findById(CALLBACK.getId())
-                .orElse(getNotFoundMessage()));
-    }
-
-    private ShelterMessage getNotFoundMessage() {
-        ShelterMessage sm = new ShelterMessage();
-        sm.setDescription("not found message");
-        sm.setMessageText("Information not found, please try again later");
-        return sm;
-    }
-
-    private void sendDescription(Update update, ShelterMessage shelterMessage) {
-        logger.info("Sending the " + shelterMessage.getDescription() + " message");
+        ShelterMessage shelterMessage = this.messageRepository.
+                findShelterMessageByTag(update.message().text()).
+                orElse(getNotFoundMessage());
         SendResponse response = telegramBot.execute(
                 new SendMessage(
                 update.message().chat().id(),
                 shelterMessage.getMessageText()));
+
         if (!response.isOk()) {
-            logger.error("Could not send the " + shelterMessage.getDescription() + " message! " +
+            logger.error("Could not send the " + shelterMessage.getTag() + " message! " +
                     "Error code: {}", response.errorCode());
         }
+    }
+
+    private ShelterMessage getNotFoundMessage() {
+        ShelterMessage sm = new ShelterMessage();
+        sm.setTag("not found message");
+        sm.setMessageText("Information not found, please try again later");
+        return sm;
     }
 }

@@ -30,16 +30,15 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         clientService.setTelegramBot(this.telegramBot);
     }
 
+//    /start
+//    /description
+//    /callback
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
-
-            switch (update.message().text()) {
-                case "/start" -> clientService.sendGreetings(update);
-                case "/description" -> clientService.sendShelterDescription(update);
-                case "/callback" -> clientService.sendCallBackMessage(update);
-            }
+            update.message().text();
+            clientService.sendMessage(update);
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
