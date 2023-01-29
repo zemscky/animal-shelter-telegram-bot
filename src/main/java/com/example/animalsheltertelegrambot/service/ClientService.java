@@ -4,6 +4,8 @@ import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ public class ClientService {
     public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
+
     }
 
     public void setTelegramBot(TelegramBot telegramBot) {
@@ -32,11 +35,12 @@ public class ClientService {
         logger.info("Sending the greeting message");
         long chatId = update.message().chat().id();
         SendMessage message = new SendMessage(chatId,
-                "Привет! Я бот приюта для животных");
+                "Привет ! Я бот приюта для животных");
         SendResponse response = telegramBot.execute(message);
         if (!response.isOk()) {
             logger.error("Could not send the greeting message! " +
                     "Error code: {}", response.errorCode());
         }
     }
+
 }
