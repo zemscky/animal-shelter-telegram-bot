@@ -16,6 +16,7 @@ public class Client {
     private String address;
     private int age;
     private int telephoneNumber;
+    private ClientStatus clientStatus;
 
     public long getId() {
         return id;
@@ -57,27 +58,4 @@ public class Client {
         this.telephoneNumber = telephoneNumber;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Client client = (Client) o;
-        return id == client.id && age == client.age && telephoneNumber == client.telephoneNumber && Objects.equals(name, client.name) && Objects.equals(address, client.address);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, address, age, telephoneNumber);
-    }
-
-    @Override
-    public String toString() {
-        return "Client{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", address='" + address + '\'' +
-                ", age=" + age +
-                ", telephoneNumber=" + telephoneNumber +
-                '}';
-    }
 }

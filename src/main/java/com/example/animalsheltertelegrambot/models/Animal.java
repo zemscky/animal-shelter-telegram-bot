@@ -14,7 +14,7 @@ public class Animal {
     private long id;
     private String name;
     private String color;
-    public String animalType;
+    private AnimalType animalType;
     private int age;
 
     public long getId() {
@@ -49,35 +49,4 @@ public class Animal {
         this.age = age;
     }
 
-    public String getAnimalType() {
-        return animalType;
-    }
-
-    public void setAnimalType(String animalType) {
-        this.animalType = animalType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Animal animal = (Animal) o;
-        return id == animal.id && age == animal.age && Objects.equals(name, animal.name) && Objects.equals(color, animal.color) && Objects.equals(animalType, animal.animalType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, color, animalType, age);
-    }
-
-    @Override
-    public String toString() {
-        return "Animal{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", color='" + color + '\'' +
-                ", animalType='" + animalType + '\'' +
-                ", age=" + age +
-                '}';
-    }
 }
