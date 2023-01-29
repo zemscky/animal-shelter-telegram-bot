@@ -2,7 +2,7 @@ package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
-import com.example.animalsheltertelegrambot.repositories.GeneralInfoRepository;
+import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -18,15 +18,15 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final AnimalRepository animalRepository;
-    private final GeneralInfoRepository generalInfoRepository;
+    private final InfoMessageRepository infoMessageRepository;
     private TelegramBot telegramBot;
 
     public ClientService(ClientRepository clientRepository,
                          AnimalRepository animalRepository,
-                         GeneralInfoRepository generalInfoRepository) {
+                         InfoMessageRepository infoMessageRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
-        this.generalInfoRepository = generalInfoRepository;
+        this.infoMessageRepository = infoMessageRepository;
     }
 
     public void setTelegramBot(TelegramBot telegramBot) {
@@ -45,10 +45,10 @@ public class ClientService {
         }
     }
 
-    public void sendSafetyRequirements(Update update) {
-        logger.info("Sending the safety requirements");
+    public void sendMessage(Update update) {
+//        logger.info("Sending the safety requirements");
         long chatId = update.message().chat().id();
-        String text = generalInfoRepository.findSafetyRules();
+        String text = infoMessageRepository.findById(update.message().text()).get();
         SendMessage message = new SendMessage(chatId,
                 text);
         SendResponse response = telegramBot.execute(message);

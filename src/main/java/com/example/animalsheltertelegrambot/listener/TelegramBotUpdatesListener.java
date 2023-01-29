@@ -38,7 +38,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             if (update.message().text().equals("/start")) {
                 clientService.sendGreetings(update);
             } else if (update.message().text().equals("/safety")) {
-                clientService.sendSafetyRequirements(update);
+                clientService.sendMessage(update);
             }
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
