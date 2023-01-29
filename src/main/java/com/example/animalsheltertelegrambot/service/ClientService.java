@@ -1,9 +1,9 @@
 package com.example.animalsheltertelegrambot.service;
 
-import com.example.animalsheltertelegrambot.models.ShelterMessage;
+import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
-import com.example.animalsheltertelegrambot.repositories.ShelterMessageRepository;
+import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -20,10 +20,10 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final AnimalRepository animalRepository;
-    private final ShelterMessageRepository messageRepository;
+    private final InfoMessageRepository messageRepository;
     private TelegramBot telegramBot;
 
-    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, ShelterMessageRepository messageRepository) {
+    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
@@ -36,24 +36,24 @@ public class ClientService {
     public void sendMessage(Update update) {
         logger.info("Sending the " + update.message().text() + " message");
 
-        ShelterMessage shelterMessage = this.messageRepository.
-                findShelterMessageByTag(update.message().text()).
+        InfoMessage infoMessage = this.messageRepository.
+                findById(update.message().text()).
                 orElse(getNotFoundMessage());
         SendResponse response = telegramBot.execute(
                 new SendMessage(
                 update.message().chat().id(),
-                shelterMessage.getMessageText()));
+                infoMessage.getText()));
 
         if (!response.isOk()) {
-            logger.error("Could not send the " + shelterMessage.getTag() + " message! " +
+            logger.error("Could not send the " + infoMessage.getTag() + " message! " +
                     "Error code: {}", response.errorCode());
         }
     }
 
-    private ShelterMessage getNotFoundMessage() {
-        ShelterMessage sm = new ShelterMessage();
-        sm.setTag("not found message");
-        sm.setMessageText("Information not found, please try again later");
+    private InfoMessage getNotFoundMessage() {
+        InfoMessage sm = new InfoMessage();
+        sm.setTag("not found");
+        sm.setText("Information not found, please try again later");
         return sm;
     }
 }
