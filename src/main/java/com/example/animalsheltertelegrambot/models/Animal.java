@@ -49,4 +49,11 @@ public class Animal {
         this.age = age;
     }
 
+    public AnimalType getAnimalType() {
+        return animalType;
+    }
+
+    public void setAnimalType(AnimalType animalType) {
+        this.animalType = animalType;
+    }
 }

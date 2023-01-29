@@ -18,6 +18,14 @@ public class Client {
     private int telephoneNumber;
     private ClientStatus clientStatus;
 
+    public ClientStatus getClientStatus() {
+        return clientStatus;
+    }
+
+    public void setClientStatus(ClientStatus clientStatus) {
+        this.clientStatus = clientStatus;
+    }
+
     public long getId() {
         return id;
     }
