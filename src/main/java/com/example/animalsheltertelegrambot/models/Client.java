@@ -1,9 +1,13 @@
 package com.example.animalsheltertelegrambot.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class Client {
@@ -12,24 +16,26 @@ public class Client {
     @GeneratedValue
     private long id;
 
+    private Long chatId;
+
     private String name;
     private String address;
     private int age;
     private int telephoneNumber;
 
-    public Client() {
-    }
+    @OneToMany(mappedBy = "client")
+    @JsonBackReference
+    private Set<Animal> animals;
 
-    public Client(long id, String name, String address, int age, int telephoneNumber) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.age = age;
-        this.telephoneNumber = telephoneNumber;
+    public Client() {
     }
 
     public long getId() {
         return id;
+    }
+
+    public Long getChatId() {
+        return chatId;
     }
 
     public String getName() {
@@ -48,8 +54,16 @@ public class Client {
         return telephoneNumber;
     }
 
+    public Set<Animal> getAnimals() {
+        return animals;
+    }
+
     public void setId(long id) {
         this.id = id;
+    }
+
+    public void setChatId(Long chatId) {
+        this.chatId = chatId;
     }
 
     public void setName(String name) {
@@ -66,6 +80,10 @@ public class Client {
 
     public void setTelephoneNumber(int telephoneNumber) {
         this.telephoneNumber = telephoneNumber;
+    }
+
+    public void setAnimals(Set<Animal> animals) {
+        this.animals = animals;
     }
 
     @Override
