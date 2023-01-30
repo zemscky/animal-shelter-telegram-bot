@@ -56,7 +56,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         button.callbackData("Для началa выбери раздел");
         keyboardMarkup.addRow(button);
         logger.info("Клавитаура создана");
-        return telegramBot.execute(new SendMessage(message.chat().id(), "Отлично! Чем могу помочь?").replyMarkup(keyboardMarkup));
+        return telegramBot.execute(new SendMessage(message
+                .chat().id(), "Отлично! Чем могу помочь?").replyMarkup(keyboardMarkup));
 
 
     }
