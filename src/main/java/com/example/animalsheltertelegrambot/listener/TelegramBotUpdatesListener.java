@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
+/**
+ * Serves as a controller regarding processing user`s messages and commands.
+ * @see ClientService
+ */
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
@@ -30,9 +34,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         clientService.setTelegramBot(this.telegramBot);
     }
 
-//    /start
-//    /description
-//    /callback
+    /**
+     * Processes incoming messages from user and sends responses.
+     * @param updates new messages from user
+     * @return
+     * @see ClientService#sendMessage(Update)
+     */
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
@@ -42,3 +49,4 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 }
+

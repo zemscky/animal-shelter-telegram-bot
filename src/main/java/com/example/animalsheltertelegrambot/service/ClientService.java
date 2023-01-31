@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 
+/**
+ * Contains business logic regarding processing user`s messages and commands.
+ */
 @Service
 public class ClientService {
 
@@ -33,6 +36,15 @@ public class ClientService {
         this.telegramBot = telegramBot;
     }
 
+    /**
+     * Finds an informational message in the database by the command received
+     * from user which serves as a primary key. If user`s message is not
+     * a command, or the command was not found method sends a message
+     * stating that requested information was not found.
+     *
+     * @param update new message from user
+     * @see ClientService#getNotFoundMessage()
+     */
     public void sendMessage(Update update) {
         logger.info("Sending the " + update.message().text() + " message");
 
