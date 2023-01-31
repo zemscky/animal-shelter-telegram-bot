@@ -1,10 +1,11 @@
 package com.example.animalsheltertelegrambot.models;
 
-public enum AnimalType {
+public enum AnimalSpecies {
     DOG("Собака"), CAT("Кошка"), BIRD("Птица");
-    private final String type;
+    private final String species;
 
-    AnimalType(String type) {
-        this.type = type;
+    AnimalSpecies(String type) {
+        this.species = type;
     }
 }
+

@@ -2,29 +2,50 @@ package com.example.animalsheltertelegrambot.models;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.Objects;
 
 @Entity
 public class Client {
-
+    /**
+     * id (Client) - User identifier, primary key of the client table in database
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
+    /**
+     * Client name
+     */
     private String name;
+    /**
+     * Client address
+     */
     private String address;
+    /**
+     * Client age
+     */
     private int age;
+    /**
+     * Client telephone number
+     */
     private int telephoneNumber;
+    /**
+     * Client status (GUEST (гость),POTENTIAL_ADOPTIVE_PARENT (Потенциальный усыновитель),ADOPTIVE_PARENT(Усыновитель)
+     * Method is used {@link ClientStatus}
+     */
+    private ClientStatus status;
 
     public Client() {
     }
 
-    public Client(long id, String name, String address, int age, int telephoneNumber) {
+    public Client(long id, String name, String address, int age, int telephoneNumber, ClientStatus status) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.age = age;
         this.telephoneNumber = telephoneNumber;
+        this.status = status;
     }
 
     public long getId() {
@@ -65,6 +86,14 @@ public class Client {
 
     public void setTelephoneNumber(int telephoneNumber) {
         this.telephoneNumber = telephoneNumber;
+    }
+
+    public ClientStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ClientStatus status) {
+        this.status = status;
     }
 
     @Override

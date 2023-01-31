@@ -2,24 +2,37 @@ package com.example.animalsheltertelegrambot.models;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.Objects;
 
 @Entity
 public class Animal {
-
+    /**
+     * id (Animal) — animal identifier, primary key of animal table in database
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
+    /**
+     * Animal name (nickname)
+     */
     private String name;
+    /**
+     * Animal color
+     */
     private String color;
-    private String species;
+    /**
+     * Animal species (dog, cat, bird...)
+     * Method is used {@link AnimalSpecies}
+     */
+    private AnimalSpecies species;
     private int age;
 
     public Animal() {
     }
 
-    public Animal(long id, String name, String color, String species, int age) {
+    public Animal(long id, String name, String color, AnimalSpecies species, int age) {
         this.id = id;
         this.name = name;
         this.color = color;
@@ -39,7 +52,7 @@ public class Animal {
         return color;
     }
 
-    public String getSpecies() {
+    public AnimalSpecies getSpecies() {
         return species;
     }
 
@@ -59,7 +72,7 @@ public class Animal {
         this.color = color;
     }
 
-    public void setSpecies(String species) {
+    public void setSpecies(AnimalSpecies species) {
         this.species = species;
     }
 
