@@ -50,31 +50,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
             clientService.sendMessage(update);
-
-            Message message = update.message();
-            if (update.message().text().equals("/start")) {
-                getButtons(message);
-                clientService.sendGreetings(update);
-            } else {
-
-            }
-
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
-    private SendResponse getButtons(Message message) {
-        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-        InlineKeyboardButton button = new InlineKeyboardButton("Для начала выбери раздел");
-        button.callbackData("Для началa выбери раздел");
-        keyboardMarkup.addRow(button);
-        logger.info("Клавитаура создана");
-        return telegramBot.execute(new SendMessage(message
-                .chat().id(), "Отлично! Чем могу помочь?").replyMarkup(keyboardMarkup));
-
-
-    }
 
 
 }
-
