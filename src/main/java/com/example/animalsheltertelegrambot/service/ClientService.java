@@ -5,11 +5,9 @@ import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
@@ -22,6 +20,11 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ClientService {
+
+    public static final String GENERAL_INFO = "Узнать о приюте";
+    public static final String DOG_INFO = "Как забрать собаку";
+    public static final String SEND_REPORT = "Отправить отчёт";
+    public static final String VOLUNTEER = "Позвать волонтёра";
 
     private final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
@@ -51,45 +54,20 @@ public class ClientService {
      */
     public void sendMessage(Update update) {
 
-        if (update.callbackQuery() != null) {
-            if (update.callbackQuery().data().equals("Узнать о приюте")) {
-                InfoMessage infoMessage = this.messageRepository.
-                        findById("/generalmenu").
-                        orElse(getNotFoundMessage());
-                SendResponse response = telegramBot.execute(
-                        new SendMessage(
-                                update.callbackQuery().message().chat().id(),
-                                infoMessage.getText()));
-            }
-
-        } else if (update.message() != null) {
-
-            Message message = update.message();
-            if (message.text().equals("/start")) {
-                sendMenuButtons(message);
-//                clientService.sendGreetings(update);
+        if (update.message() != null) {
+            Long chatId = update.message().chat().id();
+            String text = update.message().text();
+            if (text.equals("/start")) {
+                InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
+                sendResponseToCommand(chatId, text, keyboardMarkup);
             } else {
-                logger.info("Sending the " + update.message().text() + " message");
-
-                InfoMessage infoMessage = this.messageRepository.
-                        findById(update.message().text()).
-                        orElse(getNotFoundMessage());
-                SendResponse response = telegramBot.execute(
-                        new SendMessage(
-                                update.message().chat().id(),
-                                infoMessage.getText()));
-
-                if (!response.isOk()) {
-                    logger.error("Could not send the " + infoMessage.getTag() + " message! " +
-                            "Error code: {}", response.errorCode());
-                }
-
+                sendResponseToCommand(chatId, text);
             }
-
+        } else if (update.callbackQuery() != null) {
+            Long chatId = update.callbackQuery().message().chat().id();
+            String text = update.callbackQuery().data();
+            sendSectionMenu(chatId, text);
         }
-
-
-
     }
 
     private InfoMessage getNotFoundMessage() {
@@ -99,27 +77,63 @@ public class ClientService {
         return sm;
     }
 
-    private void sendMenuButtons(Message message) {
+    private InlineKeyboardMarkup createMenuButtons() {
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
 
-        InlineKeyboardButton buttonGeneral = new InlineKeyboardButton("Узнать о приюте");
-        InlineKeyboardButton buttonDogs = new InlineKeyboardButton("Как забрать собаку");
-        InlineKeyboardButton buttonSendReport = new InlineKeyboardButton("Отправить отчёт");
-        InlineKeyboardButton buttonVolunteer = new InlineKeyboardButton("Позвать волонтёра");
+        InlineKeyboardButton generalButton = new InlineKeyboardButton(GENERAL_INFO);
+        InlineKeyboardButton dogsButton = new InlineKeyboardButton(DOG_INFO);
+        InlineKeyboardButton sendReportButton = new InlineKeyboardButton(SEND_REPORT);
+        InlineKeyboardButton volunteerButton = new InlineKeyboardButton(VOLUNTEER);
 
-        buttonGeneral.callbackData("Узнать о приюте");
-        buttonDogs.callbackData(buttonDogs.text());
-        buttonSendReport.callbackData(buttonSendReport.text());
-        buttonVolunteer.callbackData(buttonVolunteer.text());
+        generalButton.callbackData(generalButton.text());
+        dogsButton.callbackData(dogsButton.text());
+        sendReportButton.callbackData(sendReportButton.text());
+        volunteerButton.callbackData(volunteerButton.text());
 
-        keyboardMarkup.addRow(buttonGeneral);
-        keyboardMarkup.addRow(buttonDogs);
-        keyboardMarkup.addRow(buttonSendReport);
-        keyboardMarkup.addRow(buttonVolunteer);
+        keyboardMarkup.addRow(generalButton);
+        keyboardMarkup.addRow(dogsButton);
+        keyboardMarkup.addRow(sendReportButton);
+        keyboardMarkup.addRow(volunteerButton);
 
-        logger.info("Menu buttons created");
+        return keyboardMarkup;
+    }
 
-        SendResponse response = telegramBot.execute(new SendMessage(message
-                .chat().id(), "Выберите, пожалуйста, раздел").replyMarkup(keyboardMarkup));
+    public void sendResponseToCommand(Long chatId, String text) {
+        sendResponseToCommand(chatId, text, null);
+    }
+
+    public void sendResponseToCommand(Long chatId, String text,
+                                      InlineKeyboardMarkup keyboardMarkup) {
+
+        logger.info("Sending the " + text + " message");
+
+        InfoMessage infoMessage = this.messageRepository.
+                findById(text).
+                orElse(getNotFoundMessage());
+
+        SendMessage sm = new SendMessage(chatId, infoMessage.getText());
+        SendResponse response;
+
+        if (keyboardMarkup == null) {
+            response = telegramBot.execute(sm);
+        } else {
+            response = telegramBot.execute(sm.replyMarkup(keyboardMarkup));
+        }
+
+        if (!response.isOk()) {
+            logger.error("Could not send the " + infoMessage.getTag() + " message! " +
+                    "Error code: {}", response.errorCode());
+        }
+    }
+
+    public void sendSectionMenu(Long chatId, String text) {
+
+        switch (text) {
+            case GENERAL_INFO -> sendResponseToCommand(chatId, "/generalmenu");
+            case DOG_INFO -> sendResponseToCommand(chatId, "/dogmenu");
+            case SEND_REPORT -> sendResponseToCommand(chatId, "/sendreportmenu");
+            case VOLUNTEER -> sendResponseToCommand(chatId, "/volunteer");
+            default -> sendResponseToCommand(chatId, "not found");
+        }
     }
 }
