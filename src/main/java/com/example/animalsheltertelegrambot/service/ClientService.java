@@ -54,7 +54,7 @@ public class ClientService {
         if (update.callbackQuery() != null) {
             if (update.callbackQuery().data().equals("Узнать о приюте")) {
                 InfoMessage infoMessage = this.messageRepository.
-                        findById("/description").
+                        findById("/generalmenu").
                         orElse(getNotFoundMessage());
                 SendResponse response = telegramBot.execute(
                         new SendMessage(
@@ -68,33 +68,27 @@ public class ClientService {
             if (message.text().equals("/start")) {
                 sendMenuButtons(message);
 //                clientService.sendGreetings(update);
-            } else if (update.callbackQuery().message().text().equals("/description")) {
+            } else {
+                logger.info("Sending the " + update.message().text() + " message");
+
                 InfoMessage infoMessage = this.messageRepository.
-                        findById("/description").
+                        findById(update.message().text()).
                         orElse(getNotFoundMessage());
                 SendResponse response = telegramBot.execute(
                         new SendMessage(
                                 update.message().chat().id(),
                                 infoMessage.getText()));
+
+                if (!response.isOk()) {
+                    logger.error("Could not send the " + infoMessage.getTag() + " message! " +
+                            "Error code: {}", response.errorCode());
+                }
+
             }
 
         }
 
 
-//        logger.info("Sending the " + update.message().text() + " message");
-//
-//        InfoMessage infoMessage = this.messageRepository.
-//                findById(update.message().text()).
-//                orElse(getNotFoundMessage());
-//        SendResponse response = telegramBot.execute(
-//                new SendMessage(
-//                update.message().chat().id(),
-//                infoMessage.getText()));
-//
-//        if (!response.isOk()) {
-//            logger.error("Could not send the " + infoMessage.getTag() + " message! " +
-//                    "Error code: {}", response.errorCode());
-//        }
 
     }
 
