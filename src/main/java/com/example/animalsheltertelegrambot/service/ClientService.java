@@ -9,6 +9,7 @@ import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
@@ -49,8 +50,39 @@ public class ClientService {
      * @see ClientService#getNotFoundMessage()
      */
     public void sendMessage(Update update) {
-        logger.info("Sending the " + update.message().text() + " message");
 
+        if (update.callbackQuery() != null) {
+            if (update.callbackQuery().data().equals("Узнать о приюте")) {
+                InfoMessage infoMessage = this.messageRepository.
+                        findById("/description").
+                        orElse(getNotFoundMessage());
+                SendResponse response = telegramBot.execute(
+                        new SendMessage(
+                                update.callbackQuery().message().chat().id(),
+                                infoMessage.getText()));
+            }
+
+        } else if (update.message() != null) {
+
+            Message message = update.message();
+            if (message.text().equals("/start")) {
+                sendMenuButtons(message);
+//                clientService.sendGreetings(update);
+            } else if (update.callbackQuery().message().text().equals("/description")) {
+                InfoMessage infoMessage = this.messageRepository.
+                        findById("/description").
+                        orElse(getNotFoundMessage());
+                SendResponse response = telegramBot.execute(
+                        new SendMessage(
+                                update.message().chat().id(),
+                                infoMessage.getText()));
+            }
+
+        }
+
+
+//        logger.info("Sending the " + update.message().text() + " message");
+//
 //        InfoMessage infoMessage = this.messageRepository.
 //                findById(update.message().text()).
 //                orElse(getNotFoundMessage());
@@ -64,13 +96,6 @@ public class ClientService {
 //                    "Error code: {}", response.errorCode());
 //        }
 
-        Message message = update.message();
-        if (update.message().text().equals("/start")) {
-            getButtons(message);
-//                clientService.sendGreetings(update);
-        } else {
-
-        }
     }
 
     private InfoMessage getNotFoundMessage() {
@@ -80,26 +105,27 @@ public class ClientService {
         return sm;
     }
 
-    private void getButtons(Message message) {
+    private void sendMenuButtons(Message message) {
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+
         InlineKeyboardButton buttonGeneral = new InlineKeyboardButton("Узнать о приюте");
         InlineKeyboardButton buttonDogs = new InlineKeyboardButton("Как забрать собаку");
         InlineKeyboardButton buttonSendReport = new InlineKeyboardButton("Отправить отчёт");
         InlineKeyboardButton buttonVolunteer = new InlineKeyboardButton("Позвать волонтёра");
 
-        buttonGeneral.callbackData();
-        buttonDogs.callbackData();
-        buttonSendReport.callbackData();
-        buttonVolunteer.callbackData();
+        buttonGeneral.callbackData("Узнать о приюте");
+        buttonDogs.callbackData(buttonDogs.text());
+        buttonSendReport.callbackData(buttonSendReport.text());
+        buttonVolunteer.callbackData(buttonVolunteer.text());
 
         keyboardMarkup.addRow(buttonGeneral);
         keyboardMarkup.addRow(buttonDogs);
         keyboardMarkup.addRow(buttonSendReport);
         keyboardMarkup.addRow(buttonVolunteer);
 
-        logger.info("Buttons created");
+        logger.info("Menu buttons created");
 
-        telegramBot.execute(new SendMessage(message
+        SendResponse response = telegramBot.execute(new SendMessage(message
                 .chat().id(), "Выберите, пожалуйста, раздел").replyMarkup(keyboardMarkup));
     }
 }
