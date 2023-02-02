@@ -34,7 +34,7 @@ class ClientServiceTest {
     SendResponse sendResponse = mock(SendResponse.class);
     SendResponse sendResponse2 = mock(SendResponse.class);
 
-    ClientService clientService = new ClientService(clientRepository, animalRepository, messageRepository, contactRepository);
+    CommandService clientService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository);
 
     @BeforeEach
     void setUp() {

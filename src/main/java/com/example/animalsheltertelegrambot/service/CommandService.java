@@ -19,9 +19,9 @@ import java.util.regex.Pattern;
 
 
 @Service
-public class ClientService {
+public class CommandService {
 
-    private final Logger logger = LoggerFactory.getLogger(ClientService.class);
+    private final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
     private final ClientRepository clientRepository;
     private final AnimalRepository animalRepository;
@@ -29,7 +29,7 @@ public class ClientService {
     private final ContactRepository contactRepository;
     private TelegramBot telegramBot;
 
-    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
+    public CommandService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
