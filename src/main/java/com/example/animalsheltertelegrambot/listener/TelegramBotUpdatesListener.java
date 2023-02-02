@@ -1,6 +1,7 @@
 package com.example.animalsheltertelegrambot.listener;
 
 import com.example.animalsheltertelegrambot.service.ClientService;
+import com.example.animalsheltertelegrambot.service.CommandService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -18,16 +19,19 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final TelegramBot telegramBot;
     private final ClientService clientService;
+    private final CommandService commandService;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService, CommandService commandService) {
         this.telegramBot = telegramBot;
         this.clientService = clientService;
+        this.commandService = commandService;
     }
 
     @PostConstruct
     public void init() {
         telegramBot.setUpdatesListener(this);
         clientService.setTelegramBot(this.telegramBot);
+        commandService.setTelegramBot(this.telegramBot);
     }
 
 //    /start
