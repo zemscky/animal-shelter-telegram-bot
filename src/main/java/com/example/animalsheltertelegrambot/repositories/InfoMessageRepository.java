@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MessageRepository extends JpaRepository<InfoMessage, String> {
+public interface InfoMessageRepository extends JpaRepository<InfoMessage, String> {
 }

@@ -5,7 +5,7 @@ import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
-import com.example.animalsheltertelegrambot.repositories.MessageRepository;
+import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.assertj.core.api.Assertions;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 class ClientServiceTest {
     ClientRepository clientRepository = mock(ClientRepository.class);
     AnimalRepository animalRepository = mock(AnimalRepository.class);
-    MessageRepository messageRepository = mock(MessageRepository.class);
+    InfoMessageRepository messageRepository = mock(InfoMessageRepository.class);
     ContactRepository contactRepository = mock(ContactRepository.class);
     TelegramBot telegramBot = mock(TelegramBot.class);
     SendResponse sendResponse = mock(SendResponse.class);

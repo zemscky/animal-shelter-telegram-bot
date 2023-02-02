@@ -5,7 +5,7 @@ import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
-import com.example.animalsheltertelegrambot.repositories.MessageRepository;
+import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -25,11 +25,11 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final AnimalRepository animalRepository;
-    private final MessageRepository messageRepository;
+    private final InfoMessageRepository messageRepository;
     private final ContactRepository contactRepository;
     private TelegramBot telegramBot;
 
-    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, MessageRepository messageRepository, ContactRepository contactRepository) {
+    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
