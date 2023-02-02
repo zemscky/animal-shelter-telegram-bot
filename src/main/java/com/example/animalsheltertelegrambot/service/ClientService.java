@@ -39,6 +39,10 @@ public class ClientService {
         this.messageRepository = messageRepository;
     }
 
+    public static String GENERAL_INFO(Update update) {
+        return GENERAL_INFO;
+    }
+
     public void setTelegramBot(TelegramBot telegramBot) {
         this.telegramBot = telegramBot;
     }
@@ -60,8 +64,10 @@ public class ClientService {
             if (text.equals("/start")) {
                 InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
                 sendResponseToCommand(chatId, text, keyboardMarkup);
-            } else {
-                sendResponseToCommand(chatId, text);
+            } else if (update.callbackQuery() != null) {
+                extracted(update);
+
+                //sendResponseToCommand(chatId, text);
             }
         } else if (update.callbackQuery() != null) {
             Long chatId = update.callbackQuery().message().chat().id();
@@ -96,6 +102,25 @@ public class ClientService {
         keyboardMarkup.addRow(volunteerButton);
 
         return keyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup stepOne(Update update) {
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        InlineKeyboardButton generalButton = new InlineKeyboardButton("12334");
+        generalButton.callbackData(generalButton.text());
+        keyboardMarkup.addRow(generalButton);
+        return keyboardMarkup;
+    }
+
+    private void extracted(Update update) {
+        String data = update.callbackQuery().data();
+        switch (data) {
+            case ("info"):
+                stepOne(update);
+                break;
+            default:
+                break;
+        }
     }
 
     public void sendResponseToCommand(Long chatId, String text) {
