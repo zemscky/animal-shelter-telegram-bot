@@ -11,15 +11,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ClientService {
     public static final String GENERAL_INFO = "Узнать о приюте";
     public static final String DOG_INFO = "Как забрать собаку";
     public static final String SEND_REPORT = "Отправить отчёт";
-    public static final String ADDRESS_SCHEDULE = "Узнать адрес и часы работы";
-    public static final String SAFETY = "Техника безопасности на территории приюта";
-    public static final String CALLBACK = "Запросить обратный звонок";
     public static final String VOLUNTEER = "Позвать волонтёра";
+    public static final String CALLBACK = "Запросить обратный звонок";
+
+    public static final String ABOUT_SHELTER = "Подробнее о приюте";
+    public static final String ADDRESS_SCHEDULE = "Адрес и часы работы";
+    public static final String SAFETY = "Техника безопасности";
 
     private final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
@@ -52,10 +56,11 @@ public class ClientService {
             if (text.equals("/start")) {
                 InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
                 this.commandService.sendResponseToCommand(chatId, text, keyboardMarkup);
-            } else {
+            }  else {
                 this.commandService.sendResponseToCommand(chatId, text);
             }
         } else if (update.callbackQuery() != null) {
+            this.commandService.sendCallbackQueryResponse(update.callbackQuery().id());
             Long chatId = update.callbackQuery().message().chat().id();
             String text = update.callbackQuery().data();
             sendSectionMenu(chatId, text);
@@ -68,39 +73,55 @@ public class ClientService {
         InlineKeyboardButton generalButton = new InlineKeyboardButton(GENERAL_INFO);
         InlineKeyboardButton dogsButton = new InlineKeyboardButton(DOG_INFO);
         InlineKeyboardButton sendReportButton = new InlineKeyboardButton(SEND_REPORT);
-        InlineKeyboardButton addressScheduleButton = new InlineKeyboardButton(ADDRESS_SCHEDULE);
-        InlineKeyboardButton safetyButton = new InlineKeyboardButton(SAFETY);
         InlineKeyboardButton callbackRequestButton = new InlineKeyboardButton(CALLBACK);
         InlineKeyboardButton volunteerButton = new InlineKeyboardButton(VOLUNTEER);
 
         generalButton.callbackData(generalButton.text());
         dogsButton.callbackData(dogsButton.text());
         sendReportButton.callbackData(sendReportButton.text());
-        addressScheduleButton.callbackData(addressScheduleButton.text());
-        safetyButton.callbackData(safetyButton.text());
         callbackRequestButton.callbackData(callbackRequestButton.text());
         volunteerButton.callbackData(volunteerButton.text());
 
         keyboardMarkup.addRow(generalButton);
         keyboardMarkup.addRow(dogsButton);
         keyboardMarkup.addRow(sendReportButton);
-        keyboardMarkup.addRow(addressScheduleButton);
-        keyboardMarkup.addRow(safetyButton);
         keyboardMarkup.addRow(callbackRequestButton);
         keyboardMarkup.addRow(volunteerButton);
 
         return keyboardMarkup;
     }
 
+    private InlineKeyboardMarkup createMenuButtonsGeneralInfo() {
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+
+        InlineKeyboardButton aboutShelterButton = new InlineKeyboardButton(ABOUT_SHELTER);
+        InlineKeyboardButton addressScheduleButton = new InlineKeyboardButton(ADDRESS_SCHEDULE);
+        InlineKeyboardButton safetyButton = new InlineKeyboardButton(SAFETY);
+
+        aboutShelterButton.callbackData(aboutShelterButton.text());
+        addressScheduleButton.callbackData(addressScheduleButton.text());
+        safetyButton.callbackData(safetyButton.text());
+
+        keyboardMarkup.addRow(aboutShelterButton);
+        keyboardMarkup.addRow(addressScheduleButton);
+        keyboardMarkup.addRow(safetyButton);
+
+        return keyboardMarkup;
+    }
+
     public void sendSectionMenu(Long chatId, String text) {
         switch (text) {
-            case GENERAL_INFO -> this.commandService.sendResponseToCommand(chatId, "/description");
+            case GENERAL_INFO -> {
+                InlineKeyboardMarkup keyboardMarkup = createMenuButtonsGeneralInfo();
+                this.commandService.sendResponseToCommand(chatId, "/description", keyboardMarkup);
+            }
             case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
             case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
             case ADDRESS_SCHEDULE -> this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
             case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
             case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
             case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
+            case ABOUT_SHELTER -> this.commandService.sendResponseToCommand(chatId, "/aboutshelter");
             default -> this.commandService.sendResponseToCommand(chatId, "not found");
         }
     }

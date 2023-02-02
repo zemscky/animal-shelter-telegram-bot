@@ -6,9 +6,16 @@ import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
+import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.CallbackQuery;
+import com.pengrad.telegrambot.model.request.ForceReply;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.ParseMode;
+import com.pengrad.telegrambot.request.AnswerCallbackQuery;
+import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +115,10 @@ public class CommandService {
     //sends contact saved message
     public SendResponse sendContactSavedMessage(Long chatId) {
         return sendMessage(chatId, "contact saved", "The number is saved", null);
+    }
+
+    public void sendCallbackQueryResponse(String id) {
+        telegramBot.execute(new AnswerCallbackQuery(id));
     }
 
     //sends message to the user and performs logging
