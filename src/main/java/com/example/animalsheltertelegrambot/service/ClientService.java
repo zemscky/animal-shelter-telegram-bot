@@ -17,6 +17,7 @@ public class ClientService {
     public static final String DOG_INFO = "Как забрать собаку";
     public static final String SEND_REPORT = "Отправить отчёт";
     public static final String VOLUNTEER = "Позвать волонтёра";
+    public static final String CALLBACK = "Позвоните мне";
 
     private final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
@@ -91,6 +92,7 @@ public class ClientService {
             case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
             case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
             case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
+            case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
             default -> this.commandService.sendResponseToCommand(chatId, "not found");
         }
     }
