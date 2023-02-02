@@ -24,3 +24,12 @@ VALUES
 -- changeset irina:3
 alter table info_message
     alter column text type text;
+
+-- changeset irina:4
+insert into info_message (tag, text)
+values ('/generalmenu', 'Выберите команду:
+/description - о нас
+/addressandschedule - адрес и часы работы
+/safety - техника безопасности на территории приюта
+/callback - оставьте контактные данные, и мы Вам перезвоним
+Не нашли нужную информацию? Для связи с волонтёром нажмите /volunteer');

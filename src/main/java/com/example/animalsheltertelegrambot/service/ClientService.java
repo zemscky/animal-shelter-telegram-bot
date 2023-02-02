@@ -16,9 +16,9 @@ public class ClientService {
     public static final String GENERAL_INFO = "Узнать о приюте";
     public static final String DOG_INFO = "Как забрать собаку";
     public static final String SEND_REPORT = "Отправить отчёт";
-    public static final String ADDRESS_SCHEDULE = "Узнать адрес и часы работы";
-    public static final String SAFETY = "Техника безопасности на территории приюта";
-    public static final String CALLBACK = "Запросить обратный звонок";
+//    public static final String ADDRESS_SCHEDULE = "Узнать адрес и часы работы";
+//    public static final String SAFETY = "Техника безопасности на территории приюта";
+//    public static final String CALLBACK = "Запросить обратный звонок";
     public static final String VOLUNTEER = "Позвать волонтёра";
 
     private final Logger logger = LoggerFactory.getLogger(ClientService.class);
@@ -68,25 +68,25 @@ public class ClientService {
         InlineKeyboardButton generalButton = new InlineKeyboardButton(GENERAL_INFO);
         InlineKeyboardButton dogsButton = new InlineKeyboardButton(DOG_INFO);
         InlineKeyboardButton sendReportButton = new InlineKeyboardButton(SEND_REPORT);
-        InlineKeyboardButton addressScheduleButton = new InlineKeyboardButton(ADDRESS_SCHEDULE);
-        InlineKeyboardButton safetyButton = new InlineKeyboardButton(SAFETY);
-        InlineKeyboardButton callbackRequestButton = new InlineKeyboardButton(CALLBACK);
+//        InlineKeyboardButton addressScheduleButton = new InlineKeyboardButton(ADDRESS_SCHEDULE);
+//        InlineKeyboardButton safetyButton = new InlineKeyboardButton(SAFETY);
+//        InlineKeyboardButton callbackRequestButton = new InlineKeyboardButton(CALLBACK);
         InlineKeyboardButton volunteerButton = new InlineKeyboardButton(VOLUNTEER);
 
         generalButton.callbackData(generalButton.text());
         dogsButton.callbackData(dogsButton.text());
         sendReportButton.callbackData(sendReportButton.text());
-        addressScheduleButton.callbackData(addressScheduleButton.text());
-        safetyButton.callbackData(safetyButton.text());
-        callbackRequestButton.callbackData(callbackRequestButton.text());
+//        addressScheduleButton.callbackData(addressScheduleButton.text());
+//        safetyButton.callbackData(safetyButton.text());
+//        callbackRequestButton.callbackData(callbackRequestButton.text());
         volunteerButton.callbackData(volunteerButton.text());
 
         keyboardMarkup.addRow(generalButton);
         keyboardMarkup.addRow(dogsButton);
         keyboardMarkup.addRow(sendReportButton);
-        keyboardMarkup.addRow(addressScheduleButton);
-        keyboardMarkup.addRow(safetyButton);
-        keyboardMarkup.addRow(callbackRequestButton);
+//        keyboardMarkup.addRow(addressScheduleButton);
+//        keyboardMarkup.addRow(safetyButton);
+//        keyboardMarkup.addRow(callbackRequestButton);
         keyboardMarkup.addRow(volunteerButton);
 
         return keyboardMarkup;
@@ -97,9 +97,9 @@ public class ClientService {
             case GENERAL_INFO -> this.commandService.sendResponseToCommand(chatId, "/description");
             case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
             case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
-            case ADDRESS_SCHEDULE -> this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
-            case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
-            case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
+//            case ADDRESS_SCHEDULE -> this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
+//            case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
+//            case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
             case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
             default -> this.commandService.sendResponseToCommand(chatId, "not found");
         }
