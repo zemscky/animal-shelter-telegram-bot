@@ -121,6 +121,7 @@ public class CommandService {
         if (keyboardMarkup == null) {
             response = telegramBot.execute(sm);
         } else {
+            logger.info("Sending the keyboard");
             response = telegramBot.execute(sm.replyMarkup(keyboardMarkup));
         }
         if (!response.isOk()) {

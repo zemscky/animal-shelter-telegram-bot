@@ -39,7 +39,7 @@ class CommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        commandService.setTelegramBot(telegramBot);
+        this.commandService.setTelegramBot(telegramBot);
     }
 
     @Test

@@ -30,7 +30,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     @PostConstruct
     public void init() {
         telegramBot.setUpdatesListener(this);
-        clientService.setTelegramBot(this.telegramBot);
         commandService.setTelegramBot(this.telegramBot);
     }
 

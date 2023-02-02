@@ -27,17 +27,12 @@ public class ClientService {
     private final AnimalRepository animalRepository;
     private final InfoMessageRepository messageRepository;
     private final CommandService commandService;
-    private TelegramBot telegramBot;
 
     public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, CommandService commandService) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
         this.commandService = commandService;
-    }
-
-    public void setTelegramBot(TelegramBot telegramBot) {
-        this.telegramBot = telegramBot;
     }
 
     /**
