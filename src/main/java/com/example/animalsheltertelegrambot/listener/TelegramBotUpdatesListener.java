@@ -1,6 +1,6 @@
 package com.example.animalsheltertelegrambot.listener;
 
-import com.example.animalsheltertelegrambot.service.CommandService;
+import com.example.animalsheltertelegrambot.service.ClientService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -17,9 +17,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     private final TelegramBot telegramBot;
-    private final CommandService clientService;
+    private final ClientService clientService;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, CommandService clientService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService) {
         this.telegramBot = telegramBot;
         this.clientService = clientService;
     }
@@ -37,7 +37,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     public int process(List<Update> updates) {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
-            clientService.handleRequest(update);
+            clientService.sendMessage(update);
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }

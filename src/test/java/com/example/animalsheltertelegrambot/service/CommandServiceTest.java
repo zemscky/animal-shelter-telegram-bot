@@ -7,6 +7,7 @@ import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,32 +26,31 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ClientServiceTest {
+class CommandServiceTest {
     ClientRepository clientRepository = mock(ClientRepository.class);
     AnimalRepository animalRepository = mock(AnimalRepository.class);
     InfoMessageRepository messageRepository = mock(InfoMessageRepository.class);
     ContactRepository contactRepository = mock(ContactRepository.class);
     TelegramBot telegramBot = mock(TelegramBot.class);
     SendResponse sendResponse = mock(SendResponse.class);
-    SendResponse sendResponse2 = mock(SendResponse.class);
+    InlineKeyboardMarkup keyboardMarkup = mock(InlineKeyboardMarkup.class);
 
-    CommandService clientService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository);
+    CommandService commandService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository);
 
     @BeforeEach
     void setUp() {
-        clientService.setTelegramBot(telegramBot);
+        commandService.setTelegramBot(telegramBot);
     }
 
     @Test
     void sendMessageTest() {
         when(telegramBot.execute(any())).thenReturn(sendResponse);
-        SendResponse response = this.clientService.sendMessage(123L, "test", "testMessage");
+        SendResponse response = this.commandService.sendMessage(123L, "test", "testMessage",keyboardMarkup);
         Assertions.assertThat(response).isEqualTo(sendResponse);
-        Assertions.assertThat(response).isNotEqualTo(sendResponse2);
         Assertions.assertThat(response.isOk()).isFalse();
 
         when(sendResponse.isOk()).thenReturn(true);
-        response = this.clientService.sendMessage(123L, "test", "testMessage");
+        response = this.commandService.sendMessage(123L, "test", "testMessage", keyboardMarkup);
         Assertions.assertThat(response.isOk()).isTrue();
     }
 
@@ -58,22 +58,22 @@ class ClientServiceTest {
     void sendCallbackMessageTest() {
         when(telegramBot.execute(any())).thenReturn(sendResponse);
         when(this.contactRepository.findById(123L)).thenReturn(Optional.empty());
-        Assertions.assertThat(clientService.sendCallbackMessage(123L)).isEqualTo(sendResponse);
+        Assertions.assertThat(commandService.sendCallbackMessage(123L, keyboardMarkup)).isEqualTo(sendResponse);
 
         when(this.contactRepository.findById(123L)).thenReturn(Optional.of(new Contact(123L, "+79119009090")));
-        Assertions.assertThat(clientService.sendCallbackMessage(123L)).isEqualTo(sendResponse);
+        Assertions.assertThat(commandService.sendCallbackMessage(123L, keyboardMarkup)).isEqualTo(sendResponse);
     }
 
     @Test
     void sendContactSavedMessageTest() {
         when(telegramBot.execute(any())).thenReturn(sendResponse);
 
-        SendResponse response = this.clientService.sendContactSavedMessage(123L);
+        SendResponse response = this.commandService.sendContactSavedMessage(123L);
         Assertions.assertThat(response).isEqualTo(sendResponse);
         Assertions.assertThat(response.isOk()).isFalse();
 
         when(sendResponse.isOk()).thenReturn(true);
-        response = this.clientService.sendContactSavedMessage(123L);
+        response = this.commandService.sendContactSavedMessage(123L);
 
         Assertions.assertThat(response.isOk()).isTrue();
     }
@@ -83,22 +83,22 @@ class ClientServiceTest {
         when(telegramBot.execute(any())).thenReturn(sendResponse);
         when(this.messageRepository.findById("/test")).thenReturn(Optional.of(new InfoMessage("/test", "Test message")));
 
-        SendResponse response = this.clientService.sendInfoMessage(123L, "/test");
+        SendResponse response = this.commandService.sendInfoMessage(123L, "/test", keyboardMarkup);
         Assertions.assertThat(response).isEqualTo(sendResponse);
         Assertions.assertThat(response.isOk()).isFalse();
 
         when(this.contactRepository.findById(123L)).thenReturn(Optional.empty());
         when(sendResponse.isOk()).thenReturn(true);
 
-        response = this.clientService.sendInfoMessage(123L, "/test");
+        response = this.commandService.sendInfoMessage(123L, "/test", keyboardMarkup);
         Assertions.assertThat(response).isEqualTo(sendResponse);
         Assertions.assertThat(response.isOk()).isTrue();
     }
 
     @Test
     void isCommandTest() {
-        boolean isCommand1 = this.clientService.isCommand("/test");
-        boolean isCommand2 = this.clientService.isCommand("test");
+        boolean isCommand1 = this.commandService.isCommand("/test");
+        boolean isCommand2 = this.commandService.isCommand("test");
 
         Assertions.assertThat(isCommand1).isTrue();
         Assertions.assertThat(isCommand2).isFalse();
@@ -109,8 +109,8 @@ class ClientServiceTest {
         when(this.messageRepository.findById("/testFalse")).thenReturn(Optional.empty());
         when(this.messageRepository.findById("/testTrue")).thenReturn(Optional.of(new InfoMessage("test", "test")));
 
-        boolean isInfoRequestFalse = this.clientService.isInfoRequest("/testFalse");
-        boolean isInfoRequestTrue = this.clientService.isInfoRequest("/testTrue");
+        boolean isInfoRequestFalse = this.commandService.isInfoRequest("/testFalse");
+        boolean isInfoRequestTrue = this.commandService.isInfoRequest("/testTrue");
 
         Assertions.assertThat(isInfoRequestFalse).isFalse();
         Assertions.assertThat(isInfoRequestTrue).isTrue();
@@ -127,8 +127,8 @@ class ClientServiceTest {
     @ParameterizedTest
     @MethodSource("isMobileNumberValidTestSuites")
     void isMobileNumberValidTest(String number, String any) {
-        boolean isValid = this.clientService.isMobileNumberValid(number);
-        boolean isValid2 = this.clientService.isMobileNumberValid(any);
+        boolean isValid = this.commandService.isMobileNumberValid(number);
+        boolean isValid2 = this.commandService.isMobileNumberValid(any);
 
         Assertions.assertThat(isValid).isTrue();
         Assertions.assertThat(isValid2).isFalse();
@@ -136,7 +136,7 @@ class ClientServiceTest {
 
     @Test
     void getNotFoundInfoMessageTest() {
-        InfoMessage infoMessage = this.clientService.getNotFoundInfoMessage();
+        InfoMessage infoMessage = this.commandService.getNotFoundInfoMessage();
         Assertions.assertThat(infoMessage.getTag()).isEqualTo("not found");
     }
 
@@ -145,6 +145,6 @@ class ClientServiceTest {
         Contact returnedContact = new Contact(123L, "test");
         when(this.contactRepository.save(any())).thenReturn(returnedContact);
 
-        Assertions.assertThat(this.clientService.saveContact(123L, "+79595553535")).isEqualTo(returnedContact);
+        Assertions.assertThat(this.commandService.saveContact(123L, "+79595553535")).isEqualTo(returnedContact);
     }
 }

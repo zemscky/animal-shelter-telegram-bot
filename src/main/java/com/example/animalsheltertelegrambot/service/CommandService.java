@@ -7,7 +7,7 @@ import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
@@ -40,54 +40,89 @@ public class CommandService {
         this.telegramBot = telegramBot;
     }
 
+
+    /**
+     * Accepts the request and determine what the client wants
+     * @see CommandService#sendResponseToCommand
+     * @see CommandService#isCommand
+     * @see CommandService#isInfoRequest
+     * @see CommandService#isMobileNumberValid
+     *
+     * Finds an informational message in the database by the command received
+     * from user which serves as a primary key. If user`s message is not
+     * a command, or the command was not found method sends a message
+     * stating that requested information was not found.
+     * @see CommandService#sendInfoMessage
+     * @see CommandService#getNotFoundInfoMessage()
+     *
+     * sends a callback message or contact saved message
+     * @see CommandService#sendCallbackMessage
+     * @see CommandService#sendContactSavedMessage
+     *
+     * creates a new contact and puts it in the database
+     * @see CommandService#saveContact
+     *
+     * sends message and keyboard to the user and performs logging
+     * @see CommandService#sendMessage
+     */
+
+    public void sendResponseToCommand(Long chatId, String text) {
+        sendResponseToCommand(chatId, text, null);
+    }
+
     // accepts the request and determine what the client wants
-    public void handleRequest(Update update) {
+    public void sendResponseToCommand(Long chatId, String text, InlineKeyboardMarkup keyboardMarkup) {
         logger.info("request processing");
-
-        Long chatId = update.message().chat().id();
-        String text = update.message().text();
-
         if (isCommand(text)) {
             if (isInfoRequest(text)) {
-                sendInfoMessage(chatId, text);
+                sendInfoMessage(chatId, text, keyboardMarkup);
             } else if (text.equals("/callback")) {
-                sendCallbackMessage(chatId);
+                sendCallbackMessage(chatId, keyboardMarkup);
             }
         } else if (isMobileNumberValid(text)) {
             saveContact(chatId, text);
             sendContactSavedMessage(chatId);
-            sendCallbackMessage(chatId);
+            sendCallbackMessage(chatId, keyboardMarkup);
         } else {
-            sendMessage(chatId, "unknown command", "Unknown command!");
+            sendMessage(chatId, "unknown command", "Unknown command!", keyboardMarkup);
         }
     }
 
-    // sends a callback message
-    public SendResponse sendCallbackMessage(Long chatId) {
+    //searches for an informational message in the database and sends it to the user
+    public SendResponse sendInfoMessage(Long chatId, String tag, InlineKeyboardMarkup keyboardMarkup) {
+        InfoMessage infoMessage = this.messageRepository.
+                findById(tag).
+                orElse(getNotFoundInfoMessage());
+        return sendMessage(chatId, tag, infoMessage.getText(), keyboardMarkup);
+    }
+
+    //sends a callback message
+    public SendResponse sendCallbackMessage(Long chatId, InlineKeyboardMarkup keyboardMarkup) {
         if (this.contactRepository.findById(chatId).isPresent()) {
-            return sendMessage(chatId, "callback", "Запрос принят. Так же, Вы всегда можете прислать новый номер для обратной связи");
+            return sendMessage(chatId, "callback", "Запрос принят. Так же, Вы всегда можете прислать новый номер для обратной связи", keyboardMarkup);
         } else {
-            return sendMessage(chatId, "contact not found", "Пожалуйста, напишите номер телефона(без отступов и разделяющих знаков) для обратной связи");
+            return sendMessage(chatId, "contact not found", "Пожалуйста, напишите номер телефона(без отступов и разделяющих знаков) для обратной связи", null);
         }
     }
 
     //sends contact saved message
     public SendResponse sendContactSavedMessage(Long chatId) {
-        return sendMessage(chatId, "contact saved", "The number is saved");
-    }
-
-    //searches for an informational message in the database and sends it to the user
-    public SendResponse sendInfoMessage(Long chatId, String tag) {
-        InfoMessage infoMessage = this.messageRepository.
-                findById(tag).
-                orElse(getNotFoundInfoMessage());
-        return sendMessage(chatId, tag, infoMessage.getText());
+        return sendMessage(chatId, "contact saved", "The number is saved", null);
     }
 
     //sends message to the user and performs logging
-    public SendResponse sendMessage(Long chatId, String name, String text) {
+    public SendResponse sendMessage(Long chatId, String name, String text,
+                                    InlineKeyboardMarkup keyboardMarkup) {
         logger.info("Sending the " + name + " message");
-        SendResponse response = telegramBot.execute(new SendMessage(chatId, text));
+
+        SendMessage sm = new SendMessage(chatId, text);
+        SendResponse response;
+
+        if (keyboardMarkup == null) {
+            response = telegramBot.execute(sm);
+        } else {
+            response = telegramBot.execute(sm.replyMarkup(keyboardMarkup));
+        }
         if (!response.isOk()) {
             logger.error("Could not send the " + name + " message! " +
                     "Error code: {}", response.errorCode());
@@ -112,13 +147,13 @@ public class CommandService {
         return m.matches();
     }
 
-    //returns an information message that was not found for further sending to the user
-    public InfoMessage getNotFoundInfoMessage() {
-        return new InfoMessage("not found", "Information not found, please try again later");
-    }
-
     //creates a new contact and puts it in the database
     public Contact saveContact(Long chatId, String mobileNumber) {
         return this.contactRepository.save(new Contact(chatId, mobileNumber));
+    }
+
+    //returns an information message that was not found for further sending to the user
+    public InfoMessage getNotFoundInfoMessage() {
+        return new InfoMessage("not found", "Information not found, please try again later");
     }
 }
