@@ -20,3 +20,10 @@ VALUES
 -- changeset irina:3
 alter table info_message
     alter column text type text;
+
+-- changeset albert:4
+INSERT INTO shelter (number, address, name, telephone_number, timetable)
+VALUES
+    ('/contact1', 'Москва, ул. Зеленая, д. 1', 'Котики', '+7-999-99-99', 'Пн-Пт с 8-00 до 20-00'),
+    ('/contact2', 'Ковров, ул. Лесная, д. 2', 'Собачки', '+7-888-88-88', 'Пн-Пт с 8-00 до 20-00'),
+    ('/contact3', 'Можайск, ул. Ленина, д. 3', 'Жирафы', '+7-777-77-77', 'Пн-Пт с 8-00 до 20-00');
