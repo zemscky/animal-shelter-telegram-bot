@@ -67,7 +67,7 @@ public class ClientService {
             } else if (update.callbackQuery() != null) {
                 extracted(update);
 
-                //sendResponseToCommand(chatId, text);
+                sendResponseToCommand(chatId, text);
             }
         } else if (update.callbackQuery() != null) {
             Long chatId = update.callbackQuery().message().chat().id();
@@ -104,9 +104,9 @@ public class ClientService {
         return keyboardMarkup;
     }
 
-    public InlineKeyboardMarkup stepOne(Update update) {
+    public  InlineKeyboardMarkup stepOne(Update update) {
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-        InlineKeyboardButton generalButton = new InlineKeyboardButton("12334");
+        InlineKeyboardButton generalButton = new InlineKeyboardButton("Наш адресс");
         generalButton.callbackData(generalButton.text());
         keyboardMarkup.addRow(generalButton);
         return keyboardMarkup;
