@@ -52,6 +52,7 @@ public class ClientService {
             String text = update.message().text();
             if (text.equals("/start")) {
                 InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
+                this.commandService.SendPhoto(chatId, "", "images/shelter/shelter_logo.jpg");
                 this.commandService.sendResponseToCommand(chatId, text, keyboardMarkup);
             }  else {
                 this.commandService.sendResponseToCommand(chatId, text);
@@ -114,7 +115,13 @@ public class ClientService {
             }
             case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
             case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
-            case ADDRESS_SCHEDULE -> this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
+            case ADDRESS_SCHEDULE -> {
+                this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
+                this.commandService.SendPhoto(
+                        chatId,
+                        "Схема проезда к нашему приюту",
+                        "images/shelter/shelter_cat_and_dog_location.jpg");
+            }
             case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
             case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
             case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
