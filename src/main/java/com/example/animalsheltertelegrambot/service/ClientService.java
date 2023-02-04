@@ -1,91 +1,125 @@
 package com.example.animalsheltertelegrambot.service;
 
-import com.example.animalsheltertelegrambot.models.InfoMessage;
-import com.example.animalsheltertelegrambot.models.Shelter;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
-import com.example.animalsheltertelegrambot.repositories.ShelterRepository;
-import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.SendResponse;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class ClientService {
+    public static final String GENERAL_INFO = "Узнать о приюте";
+    public static final String DOG_INFO = "Как забрать собаку";
+    public static final String SEND_REPORT = "Отправить отчёт";
+    public static final String VOLUNTEER = "Позвать волонтёра";
+    public static final String CALLBACK = "Запросить обратный звонок";
+
+    public static final String ABOUT_SHELTER = "Подробнее о приюте";
+    public static final String ADDRESS_SCHEDULE = "Адрес и часы работы";
+    public static final String SAFETY = "Техника безопасности";
 
     private final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
     private final ClientRepository clientRepository;
     private final AnimalRepository animalRepository;
-    private final ShelterRepository shelterRepository;
     private final InfoMessageRepository messageRepository;
-    private TelegramBot telegramBot;
+    private final CommandService commandService;
 
-    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, ShelterRepository shelterRepository, InfoMessageRepository messageRepository) {
+    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, CommandService commandService) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
-        this.shelterRepository = shelterRepository;
         this.messageRepository = messageRepository;
+        this.commandService = commandService;
     }
 
-    public void setTelegramBot(TelegramBot telegramBot) {
-        this.telegramBot = telegramBot;
-    }
+    /**
+     * Finds an informational message in the database by the command received
+     * from user which serves as a primary key. If user`s message is not
+     * a command, or the command was not found method sends a message
+     * stating that requested information was not found.
+     *
+     * @param update new message from user
+     * @see CommandService#getNotFoundInfoMessage()
+     */
 
     public void sendMessage(Update update) {
-        logger.info("Sending the " + update.message().text() + " message");
-
-        InfoMessage infoMessage = this.messageRepository.
-                findById(update.message().text()).
-                orElse(getNotFoundMessage());
-        SendResponse response = telegramBot.execute(
-                new SendMessage(
-                update.message().chat().id(),
-                infoMessage.getText()));
-
-        if (!response.isOk()) {
-            logger.error("Could not send the " + infoMessage.getTag() + " message! " +
-                    "Error code: {}", response.errorCode());
+        if (update.message() != null) {
+            Long chatId = update.message().chat().id();
+            String text = update.message().text();
+            if (text.equals("/start")) {
+                InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
+                this.commandService.sendResponseToCommand(chatId, text, keyboardMarkup);
+            }  else {
+                this.commandService.sendResponseToCommand(chatId, text);
+            }
+        } else if (update.callbackQuery() != null) {
+            this.commandService.sendCallbackQueryResponse(update.callbackQuery().id());
+            Long chatId = update.callbackQuery().message().chat().id();
+            String text = update.callbackQuery().data();
+            sendSectionMenu(chatId, text);
         }
     }
 
-    private InfoMessage getNotFoundMessage() {
-        InfoMessage sm = new InfoMessage();
-        sm.setTag("not found");
-        sm.setText("Information not found, please try again later");
-        return sm;
+    private InlineKeyboardMarkup createMenuButtons() {
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+
+        InlineKeyboardButton generalButton = new InlineKeyboardButton(GENERAL_INFO);
+        InlineKeyboardButton dogsButton = new InlineKeyboardButton(DOG_INFO);
+        InlineKeyboardButton sendReportButton = new InlineKeyboardButton(SEND_REPORT);
+        InlineKeyboardButton callbackRequestButton = new InlineKeyboardButton(CALLBACK);
+        InlineKeyboardButton volunteerButton = new InlineKeyboardButton(VOLUNTEER);
+
+        generalButton.callbackData(generalButton.text());
+        dogsButton.callbackData(dogsButton.text());
+        sendReportButton.callbackData(sendReportButton.text());
+        callbackRequestButton.callbackData(callbackRequestButton.text());
+        volunteerButton.callbackData(volunteerButton.text());
+
+        keyboardMarkup.addRow(generalButton);
+        keyboardMarkup.addRow(dogsButton);
+        keyboardMarkup.addRow(sendReportButton);
+        keyboardMarkup.addRow(callbackRequestButton);
+        keyboardMarkup.addRow(volunteerButton);
+
+        return keyboardMarkup;
     }
 
-    public void sendContacts(Update update) {
-        String userMessage = update.message().text();
-        Long chatId = update.message().chat().id();
-        logger.info("Sending the " + userMessage + " message");
-        if (userMessage.equals("/contact")) {
-            logger.info("Processing update: {}", update);
-            this.telegramBot.execute(
-                    new SendMessage(chatId, "Для получения контактных данных приюта, введите:\n" +
-                            "/contact1 - для получения контактов приюта 'Котики'\n" +
-                            "/contact2 - для получения контактов приюта 'Собачки'\n" +
-                            "/contact3 - для получения контактов приюта 'Жирафы'"));
-        } else {
-            Shelter shelter = this.shelterRepository.
-                    findById(update.message().text()).
-                    orElse(new Shelter());
-            SendResponse response = telegramBot.execute(
-                    new SendMessage(chatId,
-                            "Контактные данные приюта " + "'" + shelter.getName() + "'" + "\n" +
-                                    "Адрес: " + shelter.getAddress() + "\n" +
-                                    "Телефон: " + shelter.getTelephoneNumber() + "\n" +
-                                    "Расписание: " + shelter.getTimetable()));
-            if (!response.isOk()) {
-                logger.error("Could not send the " + shelter.getNumber() + " message! " +
-                        "Error code: {}", response.errorCode());
+    private InlineKeyboardMarkup createMenuButtonsGeneralInfo() {
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+
+        InlineKeyboardButton aboutShelterButton = new InlineKeyboardButton(ABOUT_SHELTER);
+        InlineKeyboardButton addressScheduleButton = new InlineKeyboardButton(ADDRESS_SCHEDULE);
+        InlineKeyboardButton safetyButton = new InlineKeyboardButton(SAFETY);
+
+        aboutShelterButton.callbackData(aboutShelterButton.text());
+        addressScheduleButton.callbackData(addressScheduleButton.text());
+        safetyButton.callbackData(safetyButton.text());
+
+        keyboardMarkup.addRow(aboutShelterButton);
+        keyboardMarkup.addRow(addressScheduleButton);
+        keyboardMarkup.addRow(safetyButton);
+
+        return keyboardMarkup;
+    }
+
+    public void sendSectionMenu(Long chatId, String text) {
+        switch (text) {
+            case GENERAL_INFO -> {
+                InlineKeyboardMarkup keyboardMarkup = createMenuButtonsGeneralInfo();
+                this.commandService.sendResponseToCommand(chatId, "/description", keyboardMarkup);
             }
+            case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
+            case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
+            case ADDRESS_SCHEDULE -> this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
+            case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
+            case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
+            case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
+            case ABOUT_SHELTER -> this.commandService.sendResponseToCommand(chatId, "/aboutshelter");
+            default -> this.commandService.sendResponseToCommand(chatId, "not found");
         }
     }
 }

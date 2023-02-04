@@ -1,10 +1,15 @@
 package com.example.animalsheltertelegrambot.listener;
 
 import com.example.animalsheltertelegrambot.service.ClientService;
+import com.example.animalsheltertelegrambot.service.CommandService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -12,6 +17,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
+/**
+ * Serves as a controller regarding processing user`s messages and commands.
+ * @see ClientService
+ */
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
@@ -19,48 +28,35 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final TelegramBot telegramBot;
     private final ClientService clientService;
+    private final CommandService commandService;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService, CommandService commandService) {
         this.telegramBot = telegramBot;
         this.clientService = clientService;
+        this.commandService = commandService;
     }
 
     @PostConstruct
     public void init() {
         telegramBot.setUpdatesListener(this);
-        clientService.setTelegramBot(this.telegramBot);
+        commandService.setTelegramBot(this.telegramBot);
     }
 
-//    /start
-//    /description
-//    /callback
-//    @Override
-//    public int process(List<Update> updates) {
-//        updates.forEach(update -> {
-//            logger.info("Processing update: {}", update);
-//            clientService.sendMessage(update);
-//        });
-//        return UpdatesListener.CONFIRMED_UPDATES_ALL;
-//    }
-
+    /**
+     * Processes incoming messages from user and sends responses.
+     * @param updates new messages from user
+     * @return
+     * @see ClientService#sendMessage(Update)
+     */
     @Override
-    public int process(List<Update> list) {
-        list.stream()
-                .filter(update -> update.message() != null)
-                .filter(update -> update.message().text() != null)
-                .forEach(this::processUpdate);
-        return CONFIRMED_UPDATES_ALL;
-    }
-
-    private void processUpdate(Update update) {
-        String userMessage = update.message().text();
-        Long chatId = update.message().chat().id();
-        if (userMessage.toLowerCase().contains("/contact")) {
-            logger.info("Processing update: {}", update);
-            clientService.sendContacts(update);
-        } else {
+    public int process(List<Update> updates) {
+        updates.forEach(update -> {
             logger.info("Processing update: {}", update);
             clientService.sendMessage(update);
-        }
+        });
+        return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
+
+
+
 }
