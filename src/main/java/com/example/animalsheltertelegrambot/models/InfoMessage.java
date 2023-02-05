@@ -2,26 +2,49 @@ package com.example.animalsheltertelegrambot.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.util.Objects;
 
 @Entity
 public class InfoMessage {
-    private String id;
-    private String infoMessage;
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     @Id
-    public String getId() {
-        return id;
+    private String tag;
+    private String text;
+
+    public InfoMessage() {
     }
 
-    public String getInfoMessage() {
-        return infoMessage;
+    public InfoMessage(String tag, String text) {
+        this.tag = tag;
+        this.text = text;
     }
 
-    public void setInfoMessage(String infoMessage) {
-        this.infoMessage = infoMessage;
+    public String getTag() {
+        return tag;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InfoMessage that = (InfoMessage) o;
+        return Objects.equals(tag, that.tag);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tag);
     }
 }
