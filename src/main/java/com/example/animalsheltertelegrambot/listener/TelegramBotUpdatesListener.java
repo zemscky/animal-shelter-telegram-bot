@@ -19,6 +19,7 @@ import java.util.List;
 
 /**
  * Serves as a controller regarding processing user`s messages and commands.
+ *
  * @see ClientService
  */
 @Service
@@ -45,6 +46,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     /**
      * Processes incoming messages from user and sends responses.
+     *
      * @param updates new messages from user
      * @return
      * @see ClientService#sendMessage(Update)
@@ -57,7 +59,5 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
-
-
 
 }
