@@ -2,10 +2,8 @@ package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.Contact;
 import com.example.animalsheltertelegrambot.models.InfoMessage;
-import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
-import com.example.animalsheltertelegrambot.repositories.ContactRepository;
-import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
+import com.example.animalsheltertelegrambot.models.PhotoFile;
+import com.example.animalsheltertelegrambot.repositories.*;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
@@ -15,9 +13,7 @@ import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,13 +28,15 @@ public class CommandService {
     private final AnimalRepository animalRepository;
     private final InfoMessageRepository messageRepository;
     private final ContactRepository contactRepository;
+    private final PhotoFileRepository photoFileRepository;
     private TelegramBot telegramBot;
 
-    public CommandService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
+    public CommandService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository, PhotoFileRepository photoFileRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
         this.contactRepository = contactRepository;
+        this.photoFileRepository = photoFileRepository;
     }
 
     public void setTelegramBot(TelegramBot telegramBot) {
@@ -141,14 +139,15 @@ public class CommandService {
     }
 
     public void SendPhoto(Long chatId, String caption, String imagePath) {
-        try {
-            File image = ResourceUtils.getFile("classpath:" + imagePath);
-            SendPhoto sendPhoto = new SendPhoto(chatId, image);
+//        try {
+//            File image = ResourceUtils.getFile("classpath:" + imagePath);
+            PhotoFile photoFile = photoFileRepository.findById(1).orElseThrow();
+            SendPhoto sendPhoto = new SendPhoto(chatId, photoFile.getData());
             sendPhoto.caption(caption);
             telegramBot.execute(sendPhoto);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
 
     //checks whether the incoming text is a command

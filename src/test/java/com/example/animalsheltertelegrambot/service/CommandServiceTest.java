@@ -2,10 +2,7 @@ package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.Contact;
 import com.example.animalsheltertelegrambot.models.InfoMessage;
-import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
-import com.example.animalsheltertelegrambot.repositories.ContactRepository;
-import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
+import com.example.animalsheltertelegrambot.repositories.*;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.response.SendResponse;
@@ -31,11 +28,13 @@ class CommandServiceTest {
     AnimalRepository animalRepository = mock(AnimalRepository.class);
     InfoMessageRepository messageRepository = mock(InfoMessageRepository.class);
     ContactRepository contactRepository = mock(ContactRepository.class);
+    PhotoFileRepository photoFileRepository;
+
     TelegramBot telegramBot = mock(TelegramBot.class);
     SendResponse sendResponse = mock(SendResponse.class);
     InlineKeyboardMarkup keyboardMarkup = mock(InlineKeyboardMarkup.class);
 
-    CommandService commandService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository);
+    CommandService commandService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository, photoFileRepository);
 
     @BeforeEach
     void setUp() {
