@@ -1,12 +1,10 @@
 -- liquibase formatted sql
 
 -- changeset nmavro:1
-
 alter table info_message
     alter column text type varchar(1010) using text::varchar(1010);
 
 -- changeset nmavro:2
-
 INSERT INTO info_message
 (tag, text)
 VALUES
