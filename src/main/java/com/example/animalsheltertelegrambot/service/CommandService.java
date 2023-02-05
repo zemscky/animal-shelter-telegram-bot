@@ -5,16 +5,17 @@ import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.models.PhotoFile;
 import com.example.animalsheltertelegrambot.repositories.*;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.request.AnswerCallbackQuery;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.request.SendPhoto;
+import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.SendResponse;
+import org.apache.tomcat.util.net.AprEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -175,5 +176,9 @@ public class CommandService {
     //returns an information message that was not found for further sending to the user
     public InfoMessage getNotFoundInfoMessage() {
         return new InfoMessage("not found", "Information not found, please try again later");
+    }
+
+    public void testPhoto(Long chatId, SendPhoto sendPhoto) {
+        telegramBot.execute(sendPhoto);
     }
 }

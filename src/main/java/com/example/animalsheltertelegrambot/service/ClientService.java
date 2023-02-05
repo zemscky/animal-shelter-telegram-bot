@@ -1,14 +1,22 @@
 package com.example.animalsheltertelegrambot.service;
 
+import com.example.animalsheltertelegrambot.models.PhotoFile;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
+import com.pengrad.telegrambot.model.File;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SendPhoto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 @Service
 public class ClientService {
@@ -48,15 +56,42 @@ public class ClientService {
 
     public void sendMessage(Update update) {
         if (update.message() != null) {
-            Long chatId = update.message().chat().id();
-            String text = update.message().text();
-            if (text.equals("/start")) {
-                InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
-                this.commandService.SendPhoto(chatId, "", "images/shelter/shelter_logo.jpg");
-                this.commandService.sendResponseToCommand(chatId, text, keyboardMarkup);
-            }  else {
-                this.commandService.sendResponseToCommand(chatId, text);
+
+            if (update.message().photo() != null) {
+//                PhotoFile photoFile = new PhotoFile();
+
+                Long chatId = update.message().chat().id();
+                PhotoSize[] photo = update.message().photo();
+                String f_id = Arrays.stream(photo)
+                        .sorted(Comparator.comparing(PhotoSize::fileSize).reversed())
+                        .findFirst()
+                        .orElse(null).fileId();
+                // Know photo width
+                int f_width = Arrays.stream(photo)
+                        .sorted(Comparator.comparing(PhotoSize::fileSize).reversed())
+                        .findFirst()
+                        .orElse(null).width();
+                // Know photo height
+                int f_height = Arrays.stream(photo)
+                        .sorted(Comparator.comparing(PhotoSize::fileSize).reversed())
+                        .findFirst()
+                        .orElse(null).height();
+                // Set photo caption
+                String caption = "file_id: " + f_id + "\nwidth: " + Integer.toString(f_width) + "\nheight: " + Integer.toString(f_height);
+                SendPhoto sp = new SendPhoto(chatId, f_id)
+                        .caption(caption);
+                commandService.testPhoto(chatId, sp);
             }
+
+//            Long chatId = update.message().chat().id();
+//            String text = update.message().text();
+//            if (text.equals("/start")) {
+//                InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
+//                this.commandService.SendPhoto(chatId, "", "images/shelter/shelter_logo.jpg");
+//                this.commandService.sendResponseToCommand(chatId, text, keyboardMarkup);
+//            }  else {
+//                this.commandService.sendResponseToCommand(chatId, text);
+//            }
         } else if (update.callbackQuery() != null) {
             this.commandService.sendCallbackQueryResponse(update.callbackQuery().id());
             Long chatId = update.callbackQuery().message().chat().id();
