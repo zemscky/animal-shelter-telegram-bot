@@ -22,6 +22,9 @@ public class ClientService {
     public static final String ADDRESS_SCHEDULE = "Адрес и часы работы";
     public static final String SAFETY = "Техника безопасности";
 
+    public static final String DOCUMENTS_FOR_ADOPTION = "Необходимые документы";
+    public static final String CYNOLOGIST_ADVICE = "Советы кинолога";
+    public static final String ACTION_FAILURE = "Почему вам могут отказать";
     private final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
     private final ClientRepository clientRepository;
@@ -105,6 +108,23 @@ public class ClientService {
 
         return keyboardMarkup;
     }
+    private InlineKeyboardMarkup createMenuButtonsGeneralDogInfo() {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+
+        InlineKeyboardButton documentsForAdoption = new InlineKeyboardButton(DOCUMENTS_FOR_ADOPTION);
+        InlineKeyboardButton cynologistAdvice = new InlineKeyboardButton(CYNOLOGIST_ADVICE);
+        InlineKeyboardButton actionFailure = new InlineKeyboardButton(ACTION_FAILURE);
+
+        documentsForAdoption.callbackData(documentsForAdoption.text());
+        cynologistAdvice.callbackData(cynologistAdvice.text());
+        actionFailure.callbackData(actionFailure.text());
+
+        inlineKeyboardMarkup.addRow(documentsForAdoption);
+        inlineKeyboardMarkup.addRow(cynologistAdvice);
+        inlineKeyboardMarkup.addRow(actionFailure);
+
+        return inlineKeyboardMarkup;
+    }
 
     public void sendSectionMenu(Long chatId, String text) {
         switch (text) {
@@ -112,13 +132,19 @@ public class ClientService {
                 InlineKeyboardMarkup keyboardMarkup = createMenuButtonsGeneralInfo();
                 this.commandService.sendResponseToCommand(chatId, "/description", keyboardMarkup);
             }
-            case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
+            case DOG_INFO -> {
+                InlineKeyboardMarkup inlineKeyboardButton = createMenuButtonsGeneralDogInfo();
+                this.commandService.sendResponseToCommand(chatId, "/dogmenu", inlineKeyboardButton);
+            }
             case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
             case ADDRESS_SCHEDULE -> this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
             case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
             case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
             case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
             case ABOUT_SHELTER -> this.commandService.sendResponseToCommand(chatId, "/aboutshelter");
+            case DOCUMENTS_FOR_ADOPTION -> this.commandService.sendResponseToCommand(chatId,"/documents");
+            case CYNOLOGIST_ADVICE -> this.commandService.sendResponseToCommand(chatId,"/adviсe");
+            case ACTION_FAILURE -> this.commandService.sendResponseToCommand(chatId,"/refusal");
             default -> this.commandService.sendResponseToCommand(chatId, "not found");
         }
     }
