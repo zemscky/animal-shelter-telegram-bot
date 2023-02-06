@@ -43,7 +43,7 @@ public class CommandService {
     }
 
 
-    /**
+    /*
      * Accepts the request and determine what the client wants
      * @see CommandService#sendResponseToCommand
      * @see CommandService#isCommand
@@ -68,11 +68,21 @@ public class CommandService {
      * @see CommandService#sendMessage
      */
 
-    public void sendResponseToCommand(Long chatId, String text) {
-        sendResponseToCommand(chatId, text, null);
-    }
 
     // accepts the request and determine what the client wants
+
+    /**
+     * Accepts the request and determine what the client wants
+     *
+     * @param chatId this is the user's chat ID
+     * @param text is the text to be processed, the command, the phone number, etc.
+     * @param keyboardMarkup if it is not zero, then we send the keyboard to the user
+     *
+     * @see CommandService#sendResponseToCommand
+     * @see CommandService#isCommand
+     * @see CommandService#isInfoRequest
+     * @see CommandService#isMobileNumberValid
+     */
     public void sendResponseToCommand(Long chatId, String text, InlineKeyboardMarkup keyboardMarkup) {
         logger.info("request processing");
         if (isCommand(text)) {
@@ -90,7 +100,34 @@ public class CommandService {
         }
     }
 
+    /**
+     * if there is no need to send a keyboard,
+     * this auxiliary method substitutes a null value in the keyboard argument
+     * {@link CommandService#sendResponseToCommand(Long, String, InlineKeyboardMarkup)}  }
+     *
+     * @param chatId is the user's chat ID
+     * @param text is the text to be processed, the command, the phone number, etc.
+     */
+    public void sendResponseToCommand(Long chatId, String text) {
+        sendResponseToCommand(chatId, text, null);
+    }
+
     //searches for an informational message in the database and sends it to the user
+
+    /**
+     * Finds an informational message in the database by the command received
+     * from user which serves as a primary key. If user`s message is not
+     * a command, or the command was not found method sends a message
+     * stating that requested information was not found.
+     *
+     * @see CommandService#sendInfoMessage
+     * @see CommandService#getNotFoundInfoMessage()
+     *
+     * @param chatId
+     * @param tag
+     * @param keyboardMarkup
+     * @return
+     */
     public SendResponse sendInfoMessage(Long chatId, String tag, InlineKeyboardMarkup keyboardMarkup) {
         InfoMessage infoMessage = this.messageRepository.
                 findById(tag).
