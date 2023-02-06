@@ -10,6 +10,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,8 +112,9 @@ public class CommandService {
         return sendMessage(chatId, "contact saved", "The number is saved", null);
     }
 
-    public void sendCallbackQueryResponse(String id) {
-        telegramBot.execute(new AnswerCallbackQuery(id));
+    //sends a confirmation that we have accepted a push-button response from the user
+    public BaseResponse sendCallbackQueryResponse(String id) {
+        return telegramBot.execute(new AnswerCallbackQuery(id));
     }
 
     //sends message to the user and performs logging
