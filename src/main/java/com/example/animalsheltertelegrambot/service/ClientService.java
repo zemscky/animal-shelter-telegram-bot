@@ -143,7 +143,7 @@ public class ClientService {
             case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
             case ABOUT_SHELTER -> this.commandService.sendResponseToCommand(chatId, "/aboutshelter");
             case DOCUMENTS_FOR_ADOPTION -> this.commandService.sendResponseToCommand(chatId,"/documents");
-            case CYNOLOGIST_ADVICE -> this.commandService.sendResponseToCommand(chatId,"/adviсe");
+            case CYNOLOGIST_ADVICE -> this.commandService.sendResponseToCommand(chatId,"/advice");
             case ACTION_FAILURE -> this.commandService.sendResponseToCommand(chatId,"/refusal");
             default -> this.commandService.sendResponseToCommand(chatId, "not found");
         }
