@@ -4,11 +4,12 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-public class PhotoFile {
+public class LocationMap {
 
-    @Id
     @GeneratedValue
-    private Integer id;
+    private int id;
+    @Id
+    private String number;
 
     private String filePath;
     private long fileSize;
@@ -20,12 +21,20 @@ public class PhotoFile {
     private Shelter shelter;
 
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String name) {
+        this.number = name;
     }
 
     public String getFilePath() {
@@ -72,8 +81,8 @@ public class PhotoFile {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PhotoFile photoFile = (PhotoFile) o;
-        return Objects.equals(id, photoFile.id);
+        LocationMap that = (LocationMap) o;
+        return id == that.id;
     }
 
     @Override

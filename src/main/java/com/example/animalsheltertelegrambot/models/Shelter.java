@@ -1,12 +1,15 @@
 package com.example.animalsheltertelegrambot.models;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Objects;
 
 @Entity
 public class Shelter {
 
+    @GeneratedValue
+    private int id;
     @Id
     private String number;
 
@@ -16,6 +19,14 @@ public class Shelter {
     private String timetable;
 
     public Shelter() {
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNumber() {
@@ -63,11 +74,11 @@ public class Shelter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Shelter shelter = (Shelter) o;
-        return Objects.equals(number, shelter.number);
+        return id == shelter.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(number);
+        return Objects.hash(id);
     }
 }
