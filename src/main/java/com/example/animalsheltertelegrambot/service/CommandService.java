@@ -10,12 +10,16 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SendPhoto;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -159,6 +163,17 @@ public class CommandService {
                     "Error code: {}", response.errorCode());
         }
         return response;
+    }
+
+    public void SendPhoto(Long chatId, String caption, String imagePath) {
+        try {
+            File image = ResourceUtils.getFile("classpath:" + imagePath);
+            SendPhoto sendPhoto = new SendPhoto(chatId, image);
+            sendPhoto.caption(caption);
+            telegramBot.execute(sendPhoto);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

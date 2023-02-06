@@ -3,12 +3,19 @@ package com.example.animalsheltertelegrambot.service;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
+import com.pengrad.telegrambot.model.Document;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class ClientService {
@@ -28,12 +35,14 @@ public class ClientService {
     private final AnimalRepository animalRepository;
     private final InfoMessageRepository messageRepository;
     private final CommandService commandService;
+    private final FileService fileService;
 
-    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, CommandService commandService) {
+    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, CommandService commandService, FileService fileService) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
         this.commandService = commandService;
+        this.fileService = fileService;
     }
 
     /**
@@ -47,11 +56,12 @@ public class ClientService {
      */
 
     public void sendMessage(Update update) {
-        if (update.message() != null) {
+        if (update.message() != null && update.message().text() != null) {
             Long chatId = update.message().chat().id();
             String text = update.message().text();
             if (text.equals("/start")) {
                 InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
+                this.commandService.SendPhoto(chatId, "", "images/shelter/shelter_logo.jpg");
                 this.commandService.sendResponseToCommand(chatId, text, keyboardMarkup);
             }  else {
                 this.commandService.sendResponseToCommand(chatId, text);
@@ -61,6 +71,34 @@ public class ClientService {
             Long chatId = update.callbackQuery().message().chat().id();
             String text = update.callbackQuery().data();
             sendSectionMenu(chatId, text);
+        } else if (update.message().document() != null) {
+            Document document = update.message().document();
+            String fileId = document.fileId();
+            String fileName = document.fileName();
+            long fileSize = document.fileSize();
+            System.out.println(fileId);
+            System.out.println(fileName);
+            try {
+                fileService.uploadPhotoShelter(fileId, fileName, fileSize);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else if (update.message().photo() != null) {
+            PhotoSize[] photos = update.message().photo();
+            PhotoSize photo = Arrays.stream(photos).max(Comparator.comparing(PhotoSize::fileSize)).orElse(null);
+            String fileId = photo.fileId();
+            String fileName = update.message().caption();
+            long fileSize = photo.fileSize();
+            System.out.println(fileId);
+            System.out.println(fileName);
+            if (fileName.contains("shelter")) {
+                try {
+                    fileService.uploadPhotoShelter(fileId, fileName, fileSize);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -114,7 +152,13 @@ public class ClientService {
             }
             case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
             case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
-            case ADDRESS_SCHEDULE -> this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
+            case ADDRESS_SCHEDULE -> {
+                this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
+                this.commandService.SendPhoto(
+                        chatId,
+                        "Схема проезда к нашему приюту",
+                        "images/shelter/shelter_cat_and_dog_location.jpg");
+            }
             case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
             case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
             case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
