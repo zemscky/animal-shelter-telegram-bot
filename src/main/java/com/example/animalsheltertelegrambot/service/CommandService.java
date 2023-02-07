@@ -11,6 +11,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
+import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,37 +46,17 @@ public class CommandService {
         this.telegramBot = telegramBot;
     }
 
-
     /**
-     * Accepts the request and determine what the client wants
-     * @see CommandService#sendResponseToCommand
+     * Accepts the request with {@link CommandService#sendResponseToCommand} and determine what the client wants
+     *
+     * @param chatId this is the user's chat ID
+     * @param text is the text to be processed, the command, the phone number, etc.
+     * @param keyboardMarkup if it is not null, then we send the keyboard to the user
+     *
      * @see CommandService#isCommand
      * @see CommandService#isInfoRequest
      * @see CommandService#isMobileNumberValid
-     *
-     * Finds an informational message in the database by the command received
-     * from user which serves as a primary key. If user`s message is not
-     * a command, or the command was not found method sends a message
-     * stating that requested information was not found.
-     * @see CommandService#sendInfoMessage
-     * @see CommandService#getNotFoundInfoMessage()
-     *
-     * sends a callback message or contact saved message
-     * @see CommandService#sendCallbackMessage
-     * @see CommandService#sendContactSavedMessage
-     *
-     * creates a new contact and puts it in the database
-     * @see CommandService#saveContact
-     *
-     * sends message and keyboard to the user and performs logging
-     * @see CommandService#sendMessage
      */
-
-    public void sendResponseToCommand(Long chatId, String text) {
-        sendResponseToCommand(chatId, text, null);
-    }
-
-    // accepts the request and determine what the client wants
     public void sendResponseToCommand(Long chatId, String text, InlineKeyboardMarkup keyboardMarkup) {
         logger.info("request processing");
         if (isCommand(text)) {
@@ -93,7 +74,26 @@ public class CommandService {
         }
     }
 
-    //searches for an informational message in the database and sends it to the user
+    /**
+     * if there is no need to send a keyboard,
+     * this auxiliary method substitutes a null value in the keyboard argument
+     * {@link CommandService#sendResponseToCommand(Long, String, InlineKeyboardMarkup)}  }
+     */
+    public void sendResponseToCommand(Long chatId, String text) {
+        sendResponseToCommand(chatId, text, null);
+    }
+
+    /**
+     * Finds an informational message in the database by the command received
+     * from user which serves as a primary key and sends to user {@link CommandService#sendInfoMessage}. If user`s message is not
+     * a command, or the command was not found method sends a message
+     * stating that requested information was not found.
+     *
+     * @param chatId user's chatId
+     * @param tag primary key of message in database
+     * @param keyboardMarkup if it is not null, then we send the keyboard to the user
+     * @see CommandService#getNotFoundInfoMessage()
+     */
     public SendResponse sendInfoMessage(Long chatId, String tag, InlineKeyboardMarkup keyboardMarkup) {
         InfoMessage infoMessage = this.messageRepository.
                 findById(tag).
@@ -101,7 +101,14 @@ public class CommandService {
         return sendMessage(chatId, tag, infoMessage.getText(), keyboardMarkup);
     }
 
-    //sends a callback message
+    /**
+     * sends a callback message.
+     * If <u>contactRepository.findById(chatId).isPresent()</u>
+     * is false, then sends {@link CommandService#sendMessage} "contact not found" message to user
+     *
+     * @param chatId user's chat id for sending
+     * @param keyboardMarkup if it is not null, then we send the keyboard to the user
+     */
     public SendResponse sendCallbackMessage(Long chatId, InlineKeyboardMarkup keyboardMarkup) {
         if (this.contactRepository.findById(chatId).isPresent()) {
             return sendMessage(chatId, "callback", "Запрос принят. Так же, Вы всегда можете прислать новый номер для обратной связи", keyboardMarkup);
@@ -110,16 +117,34 @@ public class CommandService {
         }
     }
 
-    //sends contact saved message
+    /**
+     * sends "The number is saved" message to user with
+     * {@link CommandService#sendMessage}
+     *
+     * @param chatId user's chat id
+     */
     public SendResponse sendContactSavedMessage(Long chatId) {
         return sendMessage(chatId, "contact saved", "The number is saved", null);
     }
 
-    public void sendCallbackQueryResponse(String id) {
-        telegramBot.execute(new AnswerCallbackQuery(id));
+    /**
+     * sends a confirmation that we have accepted a push-button response from the user
+     *
+     * @param id is argument from update.callbackQuery().id()
+     */
+    public BaseResponse sendCallbackQueryResponse(String id) {
+        return telegramBot.execute(new AnswerCallbackQuery(id));
     }
 
-    //sends message to the user and performs logging
+    /**
+     * sends message to the user and performs logging
+     *
+     * @param chatId user's chatId
+     * @param name message's name for logger
+     * @param text text for sending
+     * @param keyboardMarkup if it is not null, then we send the keyboard to the user
+     * @return
+     */
     public SendResponse sendMessage(Long chatId, String name, String text,
                                     InlineKeyboardMarkup keyboardMarkup) {
         logger.info("Sending the " + name + " message");
@@ -151,29 +176,49 @@ public class CommandService {
         }
     }
 
-    //checks whether the incoming text is a command
+    /**
+     * checks whether the incoming text is a command(starts with '/')
+     * @param text argument for check
+     */
     public boolean isCommand(String text) {
         return text.startsWith("/");
     }
 
-    //checks whether the incoming text is a request for information
+    /**
+     * checks whether the incoming text is a request for information
+     * if infoMessageRepository.findById(tag).isPresent() then return true
+     * @param tag tag for searching
+     * @Return boolean (is request or not)
+     */
     public boolean isInfoRequest(String tag) {
         return this.messageRepository.findById(tag).isPresent();
     }
 
-    //checks whether the incoming text is a phone number
+    /**
+     * checks with pattern whether the incoming text is a phone number
+     *
+     * @param number field for check
+     */
     public boolean isMobileNumberValid(String number) {
         Pattern p = Pattern.compile("^\\+?[78][-(]?\\d{10}$");
         Matcher m = p.matcher(number);
         return m.matches();
     }
 
-    //creates a new contact and puts it in the database
+    /**
+     * creates a new contact and puts it in the database
+     *
+     * @param chatId user's chat id
+     * @param mobileNumber user's number of phone
+     */
     public Contact saveContact(Long chatId, String mobileNumber) {
         return this.contactRepository.save(new Contact(chatId, mobileNumber));
     }
 
-    //returns an information message that was not found for further sending to the user
+    /**
+     * returns an information message that was not found for further sending to the user
+     * @return new InfoMessage("not found", "Information not found, please try again later")
+     */
     public InfoMessage getNotFoundInfoMessage() {
         return new InfoMessage("not found", "Information not found, please try again later");
     }
