@@ -72,29 +72,27 @@ public class ClientService {
             String text = update.callbackQuery().data();
             sendSectionMenu(chatId, text);
         } else if (update.message().document() != null) {
+            Long chatId = update.message().chat().id();
             Document document = update.message().document();
             String fileId = document.fileId();
             String fileName = document.fileName();
             long fileSize = document.fileSize();
-            System.out.println(fileId);
-            System.out.println(fileName);
             try {
-                fileService.uploadPhotoShelter(fileId, fileName, fileSize);
+                fileService.uploadPhotoShelter(chatId, fileId, fileName, fileSize);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        else if (update.message().photo() != null) {
+        else if (update.message().photo() != null && update.message().caption() != null) {
+            String fileName = update.message().caption();
+            Long chatId = update.message().chat().id();
             PhotoSize[] photos = update.message().photo();
             PhotoSize photo = Arrays.stream(photos).max(Comparator.comparing(PhotoSize::fileSize)).orElse(null);
             String fileId = photo.fileId();
-            String fileName = update.message().caption();
             long fileSize = photo.fileSize();
-            System.out.println(fileId);
-            System.out.println(fileName);
-            if (fileName.contains("shelter")) {
+            if (fileName.contains("shelter-")) {
                 try {
-                    fileService.uploadPhotoShelter(fileId, fileName, fileSize);
+                    fileService.uploadPhotoShelter(chatId, fileId, fileName, fileSize);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
