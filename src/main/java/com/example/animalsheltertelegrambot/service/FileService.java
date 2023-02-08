@@ -34,18 +34,19 @@ public class FileService {
 
     private final LocationMapRepository locationMapRepository;
 
+    private final CommandService commandService;
+
     private TelegramBot telegramBot;
 
-    public FileService(AnimalRepository animalRepository, ShelterRepository shelterRepository, LocationMapRepository locationMapRepository, TelegramBot telegramBot) {
+    public FileService(AnimalRepository animalRepository, ShelterRepository shelterRepository, LocationMapRepository locationMapRepository, CommandService commandService, TelegramBot telegramBot) {
         this.animalRepository = animalRepository;
         this.shelterRepository = shelterRepository;
         this.locationMapRepository = locationMapRepository;
+        this.commandService = commandService;
         this.telegramBot = telegramBot;
     }
 
-    public void uploadPhotoShelter(String fileId, String fileName, long fileSize) throws IOException {
-
-        String shelterNumber = getShelterNumber(fileName);
+    public void uploadPhotoShelter(Long chatId, String fileId, String fileName, long fileSize) throws IOException {
 
         URL url = new URL("https://api.telegram.org/bot" + telegramBot.getToken() + "/getFile?file_id=" + fileId);
 
@@ -62,9 +63,9 @@ public class FileService {
 
         try (InputStream is = new URL("https://api.telegram.org/file/bot" +
                 telegramBot.getToken() + "/" + file_path).openStream();
-        OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
-        BufferedInputStream bis = new BufferedInputStream(is, 1024);
-        BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
+             OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
+             BufferedInputStream bis = new BufferedInputStream(is, 1024);
+             BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
         ) {
             bis.transferTo(bos);
         }
@@ -72,22 +73,31 @@ public class FileService {
         br.close();
 
         // Чтобы записать в базу фото схемы проезда  - надо нажать на скрепочку в телеграме,
-        // выбрать файл, в сообщении написать имя файла (или в подписи окошки отправки)
+        // выбрать файл, в сообщении написать имя файла (или в подписи окошка отправки)
         // строго в формате 'shelter-map-1' где 1 - номер приюта
-        // Проблема - если приюта с таким именем нет в базе - то ошибка, пока не устранил,
-        // выскакивает в следующей за этой строчкой
-        Shelter shelter = shelterRepository.getReferenceById(shelterNumber);
-        if (fileName.contains("-map-")) {
-            LocationMap locationMap = findLocationMap(shelterNumber);
-            locationMap.setShelter(shelter);
-            locationMap.setNumber(shelterNumber);
-            locationMap.setFilePath(filePath.toString());
-            locationMap.setFileSize(fileSize);
+        if (fileName.contains("map-")) {
+            String shelterNumber = getShelterNumber(chatId, fileName);
+            if (shelterRepository.findById(shelterNumber).isPresent() && !shelterNumber.equals("extraDash")) {
+                Shelter shelter = shelterRepository.getReferenceById(shelterNumber);
+                LocationMap locationMap = findLocationMap(shelterNumber);
+                locationMap.setShelter(shelter);
+                locationMap.setNumber(shelterNumber);
+                locationMap.setFilePath(filePath.toString());
+                locationMap.setFileSize(fileSize);
 
-            locationMapRepository.save(locationMap);
+                locationMapRepository.save(locationMap);
+
+                commandService.sendMessage(chatId, "Photo uploaded",
+                        "Фото схемы проезда загружено для приюта номер " + shelterNumber, null);
+            } else {
+                commandService.sendMessage(chatId, "Photo not uploaded",
+                        "Фото схемы проезда не загружено. Проверьте:\n" +
+                                "- В сообщении имя фото должно быть в формате:\n" +
+                                "'shelter-map-x' , где x - номер приюта\n" +
+                                "- Или Вы ввели номер приюта, который не существует.", null);
+            }
         }
     }
-    // Надо id с LocationMap и с Shelter удалить, а также удалить лишние поля в LocationMap
 
     public LocationMap findLocationMap(String shelterNumber) {
         logger.info("Was invoked method to get the LocationMap of the shelter with number = " + shelterNumber);
@@ -101,9 +111,14 @@ public class FileService {
         return fileExtension;
     }
 
-    private String getShelterNumber(String fileName) {
+    private String getShelterNumber(Long chatId, String fileName) {
         String[] parts = fileName.split("\\-");
-        return parts[2];
+        if (parts.length == 3) {
+            return parts[2];
+        } else {
+            return "extraDash";
+        }
+
     }
 
 }

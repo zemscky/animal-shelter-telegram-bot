@@ -5,29 +5,14 @@ import java.util.Objects;
 
 @Entity
 public class LocationMap {
-
-    @GeneratedValue
-    private int id;
     @Id
     private String number;
 
     private String filePath;
     private long fileSize;
-    private String mediaType;
-    @Lob
-    private byte[] data;
 
     @OneToOne
     private Shelter shelter;
-
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getNumber() {
         return number;
@@ -53,22 +38,6 @@ public class LocationMap {
         this.fileSize = fileSize;
     }
 
-    public String getMediaType() {
-        return mediaType;
-    }
-
-    public void setMediaType(String mediaType) {
-        this.mediaType = mediaType;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
     public Shelter getShelter() {
         return shelter;
     }
@@ -82,11 +51,11 @@ public class LocationMap {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LocationMap that = (LocationMap) o;
-        return id == that.id;
+        return Objects.equals(number, that.number);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(number);
     }
 }
