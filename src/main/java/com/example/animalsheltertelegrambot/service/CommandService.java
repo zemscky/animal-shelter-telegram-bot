@@ -3,7 +3,7 @@ package com.example.animalsheltertelegrambot.service;
 import com.example.animalsheltertelegrambot.models.Contact;
 import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
+import com.example.animalsheltertelegrambot.repositories.UserRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
@@ -24,14 +24,14 @@ public class CommandService {
 
     private final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
-    private final ClientRepository clientRepository;
+    private final UserRepository userRepository;
     private final AnimalRepository animalRepository;
     private final InfoMessageRepository messageRepository;
     private final ContactRepository contactRepository;
     private TelegramBot telegramBot;
 
-    public CommandService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
-        this.clientRepository = clientRepository;
+    public CommandService(UserRepository userRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
+        this.userRepository = userRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
         this.contactRepository = contactRepository;

@@ -1,15 +1,10 @@
 package com.example.animalsheltertelegrambot.listener;
 
-import com.example.animalsheltertelegrambot.service.ClientService;
+import com.example.animalsheltertelegrambot.service.MessageService;
 import com.example.animalsheltertelegrambot.service.CommandService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
-import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,7 +14,7 @@ import java.util.List;
 
 /**
  * Serves as a controller regarding processing user`s messages and commands.
- * @see ClientService
+ * @see MessageService
  */
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
@@ -27,12 +22,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     private final TelegramBot telegramBot;
-    private final ClientService clientService;
+    private final MessageService messageService;
     private final CommandService commandService;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService, CommandService commandService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, MessageService messageService, CommandService commandService) {
         this.telegramBot = telegramBot;
-        this.clientService = clientService;
+        this.messageService = messageService;
         this.commandService = commandService;
     }
 
@@ -46,13 +41,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Processes incoming messages from user and sends responses.
      * @param updates new messages from user
      * @return
-     * @see ClientService#sendMessage(Update)
+     * @see MessageService#sendMessage(Update)
      */
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
-            clientService.sendMessage(update);
+            messageService.sendMessage(update);
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }

@@ -31,6 +31,10 @@ UPDATE public.info_message
 SET text = 'Выберите раздел:'::varchar(255)
 WHERE tag LIKE '/dogmenu' ESCAPE '#';
 
+UPDATE public.info_message
+SET tag = '/animalmenu'::varchar(255)
+WHERE tag LIKE '/dogmenu' ESCAPE '#';
+
 -- changeset zemscky:5
 INSERT INTO public.info_message (tag, text)
 VALUES ('/documents'::varchar(255),

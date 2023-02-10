@@ -17,6 +17,12 @@ public class Animal {
     /**
      * Animal name (nickname)
      */
+
+    public enum AnimalSpecies {
+        DOG,
+        CAT,
+        NO_ANIMAL
+    }
     private String name;
     /**
      * Animal color

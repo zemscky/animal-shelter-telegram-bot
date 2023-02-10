@@ -21,9 +21,11 @@ public class Client {
     /**
      * Client name
      */
-
+    public enum UserStatus {
+        GUEST,
+        OWNER
+    }
     private Long chatId;
-
     private String name;
     /**
      * Client address
@@ -39,9 +41,9 @@ public class Client {
     private int telephoneNumber;
     /**
      * Client status (GUEST (гость),POTENTIAL_ADOPTIVE_PARENT (Потенциальный усыновитель),ADOPTIVE_PARENT(Усыновитель)
-     * Method is used {@link ClientStatus}
+     * Method is used {@link UserStatus}
      */
-    private ClientStatus status;
+    private UserStatus status;
 
     @OneToMany(mappedBy = "client")
     @JsonBackReference
@@ -50,7 +52,7 @@ public class Client {
     public Client() {
     }
 
-    public Client(long id, String name, String address, int age, int telephoneNumber, ClientStatus status) {
+    public Client(long id, String name, String address, int age, int telephoneNumber, UserStatus status) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -115,11 +117,11 @@ public class Client {
         this.animals = animals;
     }
 
-    public ClientStatus getStatus() {
+    public UserStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ClientStatus status) {
+    public void setStatus(UserStatus status) {
         this.status = status;
     }
 
