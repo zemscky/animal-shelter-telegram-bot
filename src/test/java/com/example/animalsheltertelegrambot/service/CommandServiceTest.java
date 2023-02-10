@@ -8,6 +8,8 @@ import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.request.AnswerCallbackQuery;
+import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,8 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommandServiceTest {
@@ -34,6 +35,7 @@ class CommandServiceTest {
     TelegramBot telegramBot = mock(TelegramBot.class);
     SendResponse sendResponse = mock(SendResponse.class);
     InlineKeyboardMarkup keyboardMarkup = mock(InlineKeyboardMarkup.class);
+    BaseResponse baseResponse = mock(BaseResponse.class);
 
     CommandService commandService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository);
 
@@ -146,5 +148,11 @@ class CommandServiceTest {
         when(this.contactRepository.save(any())).thenReturn(returnedContact);
 
         Assertions.assertThat(this.commandService.saveContact(123L, "+79595553535")).isEqualTo(returnedContact);
+    }
+
+    @Test
+    void sendCallbackQueryResponseTest() {
+        when(telegramBot.execute(any())).thenReturn(baseResponse);
+        Assertions.assertThat(this.commandService.sendCallbackQueryResponse("123")).isEqualTo(baseResponse);
     }
 }
