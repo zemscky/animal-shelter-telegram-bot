@@ -1,9 +1,9 @@
 package com.example.animalsheltertelegrambot.service;
 
-import com.example.animalsheltertelegrambot.models.Contact;
+import com.example.animalsheltertelegrambot.models.Client;
 import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
+import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
@@ -29,14 +29,14 @@ public class CommandService {
 
     private final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
-    private final ClientRepository clientRepository;
+    private final AdopterRepository adopterRepository;
     private final AnimalRepository animalRepository;
     private final InfoMessageRepository messageRepository;
     private final ContactRepository contactRepository;
     private TelegramBot telegramBot;
 
-    public CommandService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
-        this.clientRepository = clientRepository;
+    public CommandService(AdopterRepository adopterRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
+        this.adopterRepository = adopterRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
         this.contactRepository = contactRepository;
@@ -211,8 +211,8 @@ public class CommandService {
      * @param chatId user's chat id
      * @param mobileNumber user's number of phone
      */
-    public Contact saveContact(Long chatId, String mobileNumber) {
-        return this.contactRepository.save(new Contact(chatId, mobileNumber));
+    public Client saveContact(Long chatId, String mobileNumber) {
+        return this.contactRepository.save(new Client(chatId, mobileNumber));
     }
 
     /**

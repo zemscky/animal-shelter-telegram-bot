@@ -23,7 +23,7 @@ public class Animal {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "client_id", nullable = true)
     @JsonManagedReference
-    private Client client;
+    private Adopter adopter;
 
     @ManyToOne(fetch = FetchType.EAGER)                 //с FetchType.LAZY при получении приюта животного ошибка 500
     @JoinColumn(name = "shelter_id", nullable = false)
@@ -61,8 +61,8 @@ public class Animal {
         return specialNeed;
     }
 
-    public Client getClient() {
-        return client;
+    public Adopter getClient() {
+        return adopter;
     }
 
     public Shelter getShelter() {
@@ -97,8 +97,8 @@ public class Animal {
         this.specialNeed = specialNeed;
     }
 
-    public void setClient(Client client) {
-        this.client = client;
+    public void setClient(Adopter adopter) {
+        this.adopter = adopter;
     }
 
     public void setShelter(Shelter shelter) {

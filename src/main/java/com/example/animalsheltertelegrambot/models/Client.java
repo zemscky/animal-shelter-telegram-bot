@@ -1,89 +1,37 @@
 package com.example.animalsheltertelegrambot.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 public class Client {
-
     @Id
-    @GeneratedValue
-    private long id;
-
-    private Long chatId;
-
-    private String name;
-    private String address;
-    private int age;
-    private int telephoneNumber;
-
-    @OneToMany(mappedBy = "client")
-    @JsonBackReference
-    private Set<Animal> animals;
+    Long chatId;
+    String phoneNumber;
 
     public Client() {
     }
 
-    public long getId() {
-        return id;
+    public Client(Long chatId, String phoneNumber) {
+        this.chatId = chatId;
+        this.phoneNumber = phoneNumber;
     }
 
     public Long getChatId() {
         return chatId;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public int getTelephoneNumber() {
-        return telephoneNumber;
-    }
-
-    public Set<Animal> getAnimals() {
-        return animals;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public void setChatId(Long chatId) {
         this.chatId = chatId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public void setTelephoneNumber(int telephoneNumber) {
-        this.telephoneNumber = telephoneNumber;
-    }
-
-    public void setAnimals(Set<Animal> animals) {
-        this.animals = animals;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     @Override
@@ -91,11 +39,11 @@ public class Client {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Client client = (Client) o;
-        return id == client.id;
+        return Objects.equals(chatId, client.chatId) && Objects.equals(phoneNumber, client.phoneNumber);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(chatId, phoneNumber);
     }
 }

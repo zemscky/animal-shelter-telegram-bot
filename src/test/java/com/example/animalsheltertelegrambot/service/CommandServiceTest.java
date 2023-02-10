@@ -1,14 +1,13 @@
 package com.example.animalsheltertelegrambot.service;
 
-import com.example.animalsheltertelegrambot.models.Contact;
+import com.example.animalsheltertelegrambot.models.Client;
 import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
+import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.assertj.core.api.Assertions;
@@ -28,7 +27,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommandServiceTest {
-    ClientRepository clientRepository = mock(ClientRepository.class);
+    AdopterRepository adopterRepository = mock(AdopterRepository.class);
     AnimalRepository animalRepository = mock(AnimalRepository.class);
     InfoMessageRepository messageRepository = mock(InfoMessageRepository.class);
     ContactRepository contactRepository = mock(ContactRepository.class);
@@ -37,7 +36,7 @@ class CommandServiceTest {
     InlineKeyboardMarkup keyboardMarkup = mock(InlineKeyboardMarkup.class);
     BaseResponse baseResponse = mock(BaseResponse.class);
 
-    CommandService commandService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository);
+    CommandService commandService = new CommandService(adopterRepository, animalRepository, messageRepository, contactRepository);
 
     @BeforeEach
     void setUp() {
@@ -62,7 +61,7 @@ class CommandServiceTest {
         when(this.contactRepository.findById(123L)).thenReturn(Optional.empty());
         Assertions.assertThat(commandService.sendCallbackMessage(123L, keyboardMarkup)).isEqualTo(sendResponse);
 
-        when(this.contactRepository.findById(123L)).thenReturn(Optional.of(new Contact(123L, "+79119009090")));
+        when(this.contactRepository.findById(123L)).thenReturn(Optional.of(new Client(123L, "+79119009090")));
         Assertions.assertThat(commandService.sendCallbackMessage(123L, keyboardMarkup)).isEqualTo(sendResponse);
     }
 
@@ -144,10 +143,10 @@ class CommandServiceTest {
 
     @Test
     void saveContactTest() {
-        Contact returnedContact = new Contact(123L, "test");
-        when(this.contactRepository.save(any())).thenReturn(returnedContact);
+        Client returnedClient = new Client(123L, "test");
+        when(this.contactRepository.save(any())).thenReturn(returnedClient);
 
-        Assertions.assertThat(this.commandService.saveContact(123L, "+79595553535")).isEqualTo(returnedContact);
+        Assertions.assertThat(this.commandService.saveContact(123L, "+79595553535")).isEqualTo(returnedClient);
     }
 
     @Test
