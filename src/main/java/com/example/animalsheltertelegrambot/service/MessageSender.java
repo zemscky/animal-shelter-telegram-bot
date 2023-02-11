@@ -1,5 +1,6 @@
 package com.example.animalsheltertelegrambot.service;
 
+import com.example.animalsheltertelegrambot.models.Shelter;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 
@@ -54,9 +56,9 @@ public class MessageSender {
     /**
      * sends message to the user and performs logging
      *
-     * @param chatId user's chatId
-     * @param name message's name for logger
-     * @param text text for sending
+     * @param chatId         user's chatId
+     * @param name           message's name for logger
+     * @param text           text for sending
      * @param keyboardMarkup if it is not null, then we send the keyboard to the user
      * @return
      */
@@ -98,4 +100,24 @@ public class MessageSender {
         }
     }
 
+    //Возможно это будет метод загрузки файла по пути из БД с локального диска
+    public static void sendPhotoMessage(Long chatId, String caption, String imagePath) {
+        try {
+            File image = ResourceUtils.getFile("classpath:" + imagePath);
+//            FileInputStream image = new FileInputStream(new File(imagePath));
+            SendPhoto sendPhoto = new SendPhoto(chatId, image);
+            telegramBot.execute(sendPhoto);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendAddress(Long chatId, Shelter shelter) {
+        telegramBot.execute(
+                new SendMessage(chatId,
+                        "Контактные данные приюта " + "'" + shelter.getName() + "'" + "\n" +
+                                "Адрес: " + shelter.getAddress() + "\n" +
+                                "Телефон: " + shelter.getTelephoneNumber() + "\n" +
+                                "Расписание: " + shelter.getTimetable()));
+    }
 }

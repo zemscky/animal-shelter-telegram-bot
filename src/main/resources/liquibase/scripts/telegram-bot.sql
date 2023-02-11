@@ -27,12 +27,10 @@ alter table info_message
     alter column text type text;
 
 -- changeset albert:4
-INSERT INTO shelter (number, name, address, telephone_number, timetable)
+INSERT INTO shelter (number, name, address, telephone_number, timetable, shelter_type)
 VALUES
-    ('1', 'Котики', 'Москва, ул. Зеленая, д. 1', '+7-999-99-99', 'Пн-Пт с 8-00 до 20-00'),
-    ('2', 'Собачки', 'Ковров, ул. Лесная, д. 2', '+7-888-88-88', 'Пн-Пт с 8-00 до 20-00'),
-    ('3', 'Жирафы', 'Можайск, ул. Ленина, д. 3', '+7-777-77-77', 'Пн-Пт с 8-00 до 20-00'),
-    ('4', 'Слоны', 'Тула, ул. Красная, д. 4', '+7-666-66-66', 'Пн-Пт с 8-00 до 20-00');
+    ('1', 'Котики', 'г. Астана, ул. Зеленая, д. 1', '+7-999-99-99', 'Пн-Пт с 8-00 до 20-00', 0),
+    ('2', 'Собачки', 'г. Астана, ул. Лесная, д. 2', '+7-888-88-88', 'Пн-Пт с 8-00 до 20-00', 1);
 
 -- changeset zemscky:5
 UPDATE public.info_message
@@ -129,3 +127,9 @@ VALUES ('/passRegistration', 'У охраны собак такой номер +
 INSERT INTO public.cat_info_message (tag, text)
 VALUES ('/aboutshelter',
         'Мы приют для собак Все мы знаем, что нашим маленьким друзьям очень часто приходится нелегко, и только мы можем им помочь.Для того, чтобы спасти жизнь, достаточно совсем немного...');
+
+-- changeset albert:24
+INSERT INTO location_map (number, file_path, file_size, shelter_number)
+VALUES
+    ('1', '\shelters\shelter-map-1.jpg', 280887, '1'),
+    ('2', '\shelters\shelter-map-2.jpg', 82963, '2');
