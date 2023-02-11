@@ -19,11 +19,12 @@ public class Adopter {
     private int age;
     private String telephoneNumber;
 
-    @OneToOne(mappedBy = "adopter")
+    @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
     @JsonBackReference
     private Animal animal;
 
-    @OneToOne(mappedBy = "adopter")
+    @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
+    @JoinColumn
     @JsonBackReference
     private ProbationPeriod probationPeriod = new ProbationPeriod();
 

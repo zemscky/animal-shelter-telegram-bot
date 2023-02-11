@@ -1,10 +1,8 @@
 package com.example.animalsheltertelegrambot.service;
 
-import com.example.animalsheltertelegrambot.models.Adopter;
-import com.example.animalsheltertelegrambot.models.Report;
-import com.example.animalsheltertelegrambot.models.ShelterUser;
-import com.example.animalsheltertelegrambot.models.UserStatus;
+import com.example.animalsheltertelegrambot.models.*;
 import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
+import com.example.animalsheltertelegrambot.repositories.ProbationPeriodRepository;
 import com.example.animalsheltertelegrambot.repositories.ReportRepository;
 import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
 import com.pengrad.telegrambot.model.PhotoSize;
@@ -21,11 +19,13 @@ public class ReportService {
     private final ShelterUserRepository shelterUserRepository;
     private final AdopterRepository adopterRepository;
     private final ReportRepository reportRepository;
+    private final ProbationPeriodRepository probationPeriodRepository;
 
-    public ReportService(ShelterUserRepository shelterUserRepository, AdopterRepository adopterRepository, ReportRepository reportRepository) {
+    public ReportService(ShelterUserRepository shelterUserRepository, AdopterRepository adopterRepository, ReportRepository reportRepository, ProbationPeriodRepository probationPeriodRepository) {
         this.shelterUserRepository = shelterUserRepository;
         this.adopterRepository = adopterRepository;
         this.reportRepository = reportRepository;
+        this.probationPeriodRepository = probationPeriodRepository;
     }
 
     public boolean isSendReportCommand(String userMessage, Long chatId) {
@@ -38,6 +38,19 @@ public class ReportService {
         if (userIsAdopter(user.getUsername())) {
             user.setUserStatus(UserStatus.FILLING_REPORT);
             shelterUserRepository.save(user);
+
+            Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
+            if (adopter.getProbationPeriod() == null) {
+                ProbationPeriod probationPeriod = new ProbationPeriod();
+                probationPeriod.setEnds(LocalDate.now().plusDays(30));
+
+                adopter.setProbationPeriod(probationPeriod);
+                probationPeriod.setAdopter(adopter);
+
+                probationPeriodRepository.save(probationPeriod);
+                adopterRepository.save(adopter);
+            }
+
             MessageSender.sendMessage(chatId, "/sendReport",
                     "Отлично, приступим!\n" +
                             "В качестве отчёта Вам необходимо прислать в первом сообщении " +

@@ -17,15 +17,16 @@ public class ProbationPeriod {
 
     private LocalDate ends;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JsonBackReference
     private Animal animal;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(nullable = false)
     @JsonBackReference
     private Adopter adopter;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     @JsonBackReference
     private List<Report> reports = new ArrayList<>();
 
