@@ -2,7 +2,7 @@ package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.ShelterUser;
 import com.example.animalsheltertelegrambot.models.UserStatus;
-import com.example.animalsheltertelegrambot.repositories.UserRepository;
+import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
@@ -10,10 +10,10 @@ import java.util.regex.Pattern;
 
 @Service
 public class CallbackService {
-    private final UserRepository userRepository;
+    private final ShelterUserRepository shelterUserRepository;
 
-    public CallbackService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public CallbackService(ShelterUserRepository shelterUserRepository) {
+        this.shelterUserRepository = shelterUserRepository;
     }
 
     public boolean isMobileNumberValid(String number) {
@@ -23,7 +23,7 @@ public class CallbackService {
     }
 
     public void sendCallbackMessage(String userMessage, Long chatId) {
-        ShelterUser user = this.userRepository.findById(chatId).orElseThrow(RuntimeException::new);
+        ShelterUser user = this.shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
         if (user.getUserStatus().equals(UserStatus.SENDING_PHONE)) {
             if (isMobileNumberValid(userMessage)) {
                 user.setPhoneNumber(userMessage);
@@ -63,11 +63,11 @@ public class CallbackService {
                 MenuService.sendMainShelterMenu(chatId);
             }
         }
-        userRepository.save(user);
+        shelterUserRepository.save(user);
     }
 
     public boolean isCallbackRequest(String userMessage, Long chatId) {
-        ShelterUser user = userRepository.findById(chatId).orElseThrow(RuntimeException::new);
+        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
         return userMessage.equals("/callback")
                 || user.getUserStatus().equals(UserStatus.SENDING_PHONE)
                 || user.getUserStatus().equals(UserStatus.SENDING_PHONE_ANSWER)

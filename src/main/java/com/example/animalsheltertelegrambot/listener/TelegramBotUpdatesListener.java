@@ -46,7 +46,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Processes incoming messages from user and sends responses.
      * @param updates new messages from user
      * @return
-     * @see ClientService#sendMessage(Update)
      */
     @Override
     public int process(List<Update> updates) {

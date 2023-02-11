@@ -13,75 +13,75 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 
-@Service
-public class HeadService {
-
-    private final Logger logger = LoggerFactory.getLogger(HeadService.class);
-
-    private TelegramBot telegramBot;
-//    private final AdopterRepository adopterRepository;
-    private final ClientService clientService;
-//    private final AnimalRepository animalRepository;
-//    private final InfoMessageRepository infoMessageRepository;
-    private final CommandService commandService;
-    private final FileService fileService;
-    private final ReportService reportService;
-    private final MenuButtonsService menuButtonsService;
-    private final ShelterRepository shelterRepository;
-    private final InfoMessageService infoMessageService;
-    private final BotExecutionService botExecutionService;
-
-    public HeadService(AdopterRepository adopterRepository, ClientService clientService, AnimalRepository animalRepository, InfoMessageRepository infoMessageRepository, CommandService commandService, FileService fileService, ReportService reportService, MenuButtonsService menuButtonsService, ShelterRepository shelterRepository, InfoMessageService infoMessageService, BotExecutionService botExecutionService) {
-//        this.adopterRepository = adopterRepository;
-        this.clientService = clientService;
-        this.reportService = reportService;
-//        this.animalRepository = animalRepository;
-//        this.infoMessageRepository = infoMessageRepository;
-        this.commandService = commandService;
-        this.fileService = fileService;
-        this.menuButtonsService = menuButtonsService;
-        this.shelterRepository = shelterRepository;
-        this.infoMessageService = infoMessageService;
-        this.botExecutionService = botExecutionService;
-    }
-
-    public void setTelegramBot(TelegramBot telegramBot) {
-        this.telegramBot = telegramBot;
-    }
-
-    public void analyzeMessageAndRedirect(Message message) {
-        Long chatId = message.chat().id();
-        if (!clientService.clientExists(chatId)) {
-            clientService.saveClient(chatId);
-            sendShelterMenu(chatId);
-        }
-    }
-
-    public void analyzeCallbackQueryAndRedirect(CallbackQuery callbackQuery) {
-        Long chatId = callbackQuery.message().chat().id();
-    }
-
-    public void sendShelterMenu(Long chatId) {
-        String[] buttonNames = shelterRepository.findAllSheltersNames();
-        InlineKeyboardMarkup keyboardMarkup = menuButtonsService
-                .createKeyboardMarkup(buttonNames);
-        String text = infoMessageService.getInfoMessage("/start").getText();
-        SendMessage sm = new SendMessage(chatId, text).replyMarkup(keyboardMarkup);
-        botExecutionService.sendMessage(sm);
-    }
-
-
-
-
-    /**
-     * Finds an informational message in the database by the command received
-     * from user which serves as a primary key. If user`s message is not
-     * a command, or the command was not found method sends a message
-     * stating that requested information was not found.
-     *
-     * @param update new message from user
-     * @see CommandService#getNotFoundInfoMessage()
-     */
+//@Service
+//public class HeadService {
+//
+//    private final Logger logger = LoggerFactory.getLogger(HeadService.class);
+//
+//    private TelegramBot telegramBot;
+////    private final AdopterRepository adopterRepository;
+//    private final ClientService clientService;
+////    private final AnimalRepository animalRepository;
+////    private final InfoMessageRepository infoMessageRepository;
+//    private final CommandService commandService;
+//    private final FileService fileService;
+//    private final ReportService reportService;
+//    private final MenuButtonsService menuButtonsService;
+//    private final ShelterRepository shelterRepository;
+//    private final InfoMessageService infoMessageService;
+//    private final BotExecutionService botExecutionService;
+//
+//    public HeadService(AdopterRepository adopterRepository, ClientService clientService, AnimalRepository animalRepository, InfoMessageRepository infoMessageRepository, CommandService commandService, FileService fileService, ReportService reportService, MenuButtonsService menuButtonsService, ShelterRepository shelterRepository, InfoMessageService infoMessageService, BotExecutionService botExecutionService) {
+////        this.adopterRepository = adopterRepository;
+//        this.clientService = clientService;
+//        this.reportService = reportService;
+////        this.animalRepository = animalRepository;
+////        this.infoMessageRepository = infoMessageRepository;
+//        this.commandService = commandService;
+//        this.fileService = fileService;
+//        this.menuButtonsService = menuButtonsService;
+//        this.shelterRepository = shelterRepository;
+//        this.infoMessageService = infoMessageService;
+//        this.botExecutionService = botExecutionService;
+//    }
+//
+//    public void setTelegramBot(TelegramBot telegramBot) {
+//        this.telegramBot = telegramBot;
+//    }
+//
+//    public void analyzeMessageAndRedirect(Message message) {
+//        Long chatId = message.chat().id();
+//        if (!clientService.clientExists(chatId)) {
+//            clientService.saveClient(chatId);
+//            sendShelterMenu(chatId);
+//        }
+//    }
+//
+//    public void analyzeCallbackQueryAndRedirect(CallbackQuery callbackQuery) {
+//        Long chatId = callbackQuery.message().chat().id();
+//    }
+//
+//    public void sendShelterMenu(Long chatId) {
+//        String[] buttonNames = shelterRepository.findAllSheltersNames();
+//        InlineKeyboardMarkup keyboardMarkup = menuButtonsService
+//                .createKeyboardMarkup(buttonNames);
+//        String text = infoMessageService.getInfoMessage("/start").getText();
+//        SendMessage sm = new SendMessage(chatId, text).replyMarkup(keyboardMarkup);
+//        botExecutionService.sendMessage(sm);
+//    }
+//
+//
+//
+//
+//    /**
+//     * Finds an informational message in the database by the command received
+//     * from user which serves as a primary key. If user`s message is not
+//     * a command, or the command was not found method sends a message
+//     * stating that requested information was not found.
+//     *
+//     * @param update new message from user
+//     * @see CommandService#getNotFoundInfoMessage()
+//     */
 
 //    public void sendMessage(Update update) {
 //        if (update.message() != null && update.message().text() != null) {
@@ -126,4 +126,4 @@ public class HeadService {
 //            }
 //        }
 //    }
-}
+//}

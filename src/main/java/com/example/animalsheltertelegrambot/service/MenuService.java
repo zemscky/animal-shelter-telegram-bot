@@ -18,7 +18,7 @@ public class MenuService {
     public static final String ADDRESS_SCHEDULE = "Адрес и часы работы";
     public static final String SAFETY = "Техника безопасности";
     public static final String PASS_REGISTRATION = "Оформление пропуска";
-    public static final String CALLBACK = "Обратный вызов";
+    public static final String CALLBACK = "Обратный звонок";
 
     public static final String YES = "ДА";
     public static final String NO = "НЕТ";

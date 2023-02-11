@@ -3,7 +3,7 @@ package com.example.animalsheltertelegrambot.service;
 import com.example.animalsheltertelegrambot.models.*;
 import com.example.animalsheltertelegrambot.repositories.CatInfoMessageRepository;
 import com.example.animalsheltertelegrambot.repositories.DogInfoMessageRepository;
-import com.example.animalsheltertelegrambot.repositories.UserRepository;
+import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service;
 public class InfoMessageService {
     private final CatInfoMessageRepository catInfoMessageRepository;
     private final DogInfoMessageRepository dogInfoMessageRepository;
-    private final UserRepository userRepository;
+    private final ShelterUserRepository shelterUserRepository;
 
-    public InfoMessageService(CatInfoMessageRepository catInfoMessageRepository, DogInfoMessageRepository dogInfoMessageRepository, UserRepository userRepository) {
+    public InfoMessageService(CatInfoMessageRepository catInfoMessageRepository, DogInfoMessageRepository dogInfoMessageRepository, ShelterUserRepository shelterUserRepository) {
         this.catInfoMessageRepository = catInfoMessageRepository;
         this.dogInfoMessageRepository = dogInfoMessageRepository;
-        this.userRepository = userRepository;
+        this.shelterUserRepository = shelterUserRepository;
     }
 
     public void sendInfoMessage(Long chatId, String tag) {
@@ -31,7 +31,7 @@ public class InfoMessageService {
 
     public JpaRepository<? extends Object, String> getRepository(Long chatId) {
         ShelterType shelterType = ShelterType.DOG_SHELTER;
-        shelterType = userRepository.findById(chatId).orElseThrow().getShelterType();
+        shelterType = shelterUserRepository.findById(chatId).orElseThrow().getShelterType();
         if (shelterType == null) {
             throw new RuntimeException();
         }
