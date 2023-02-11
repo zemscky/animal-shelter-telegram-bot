@@ -1,7 +1,9 @@
 package com.example.animalsheltertelegrambot.listener;
 
-import com.example.animalsheltertelegrambot.service.MessageService;
+import com.example.animalsheltertelegrambot.service.ClientService;
 import com.example.animalsheltertelegrambot.service.CommandService;
+import com.example.animalsheltertelegrambot.service.MessageSender;
+import com.example.animalsheltertelegrambot.service.UserService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -14,7 +16,7 @@ import java.util.List;
 
 /**
  * Serves as a controller regarding processing user`s messages and commands.
- * @see MessageService
+ * @see ClientService
  */
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
@@ -22,32 +24,35 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     private final TelegramBot telegramBot;
-    private final MessageService messageService;
+    private final ClientService clientService;
     private final CommandService commandService;
+    private final UserService userService;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, MessageService messageService, CommandService commandService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService, CommandService commandService, UserService userService) {
         this.telegramBot = telegramBot;
-        this.messageService = messageService;
+        this.clientService = clientService;
         this.commandService = commandService;
+        this.userService = userService;
     }
 
     @PostConstruct
     public void init() {
         telegramBot.setUpdatesListener(this);
         commandService.setTelegramBot(this.telegramBot);
+        MessageSender.setTelegramBot(this.telegramBot);
     }
 
     /**
      * Processes incoming messages from user and sends responses.
      * @param updates new messages from user
      * @return
-     * @see MessageService#sendMessage(Update)
+     * @see ClientService#sendMessage(Update)
      */
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
-            messageService.sendMessage(update);
+            userService.updateHandle(update);
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
