@@ -1,7 +1,6 @@
 package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.pengrad.telegrambot.model.File;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

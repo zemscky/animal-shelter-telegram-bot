@@ -60,8 +60,6 @@ public class UserService {
         }
     }
 
-
-
     //determines what the user wants
     private void messageHandler(Long chatId, String userMessage) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
@@ -102,7 +100,4 @@ public class UserService {
         MessageSender.sendMessage(chatId, "first greeting", "Привет! Я бот приюта для животных.\n" +
                 "Могу рассказать о приюте для животных, а так же о том, что необходимо сделать, чтобы забрать питомца из приюта.");
     }
-
-
-
 }
