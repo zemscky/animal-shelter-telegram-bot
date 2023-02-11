@@ -4,28 +4,22 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-public class PhotoFile {
-
+public class LocationMap {
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String number;
 
     private String filePath;
     private long fileSize;
-    private String mediaType;
-    @Lob
-    private byte[] data;
 
     @OneToOne
     private Shelter shelter;
 
-
-    public Integer getId() {
-        return id;
+    public String getNumber() {
+        return number;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setNumber(String name) {
+        this.number = name;
     }
 
     public String getFilePath() {
@@ -44,22 +38,6 @@ public class PhotoFile {
         this.fileSize = fileSize;
     }
 
-    public String getMediaType() {
-        return mediaType;
-    }
-
-    public void setMediaType(String mediaType) {
-        this.mediaType = mediaType;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
     public Shelter getShelter() {
         return shelter;
     }
@@ -72,12 +50,12 @@ public class PhotoFile {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PhotoFile photoFile = (PhotoFile) o;
-        return Objects.equals(id, photoFile.id);
+        LocationMap that = (LocationMap) o;
+        return Objects.equals(number, that.number);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(number);
     }
 }

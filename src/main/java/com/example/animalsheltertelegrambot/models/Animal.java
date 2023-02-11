@@ -1,5 +1,6 @@
 package com.example.animalsheltertelegrambot.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
@@ -20,9 +21,14 @@ public class Animal {
     private String specialNeed;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "client_id", nullable = true)
+    @JoinColumn(name = "adopter_id", nullable = true)
     @JsonManagedReference
-    private Client client;
+    private Adopter adopter;
+
+    @ManyToOne(fetch = FetchType.EAGER)                 //с FetchType.LAZY при получении приюта животного ошибка 500
+    @JoinColumn(name = "shelter_id", nullable = false)
+    @JsonBackReference
+    private Shelter shelter;
 
     public Animal() {
     }
@@ -55,8 +61,12 @@ public class Animal {
         return specialNeed;
     }
 
-    public Client getClient() {
-        return client;
+    public Adopter getClient() {
+        return adopter;
+    }
+
+    public Shelter getShelter() {
+        return shelter;
     }
 
     public void setId(long id) {
@@ -87,8 +97,12 @@ public class Animal {
         this.specialNeed = specialNeed;
     }
 
-    public void setClient(Client client) {
-        this.client = client;
+    public void setClient(Adopter adopter) {
+        this.adopter = adopter;
+    }
+
+    public void setShelter(Shelter shelter) {
+        this.shelter = shelter;
     }
 
     @Override

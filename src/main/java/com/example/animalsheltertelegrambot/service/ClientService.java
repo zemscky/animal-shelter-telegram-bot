@@ -2,6 +2,7 @@ package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.PhotoFile;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
+import com.example.animalsheltertelegrambot.models.Client;
 import com.example.animalsheltertelegrambot.repositories.ClientRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.model.File;
@@ -20,24 +21,10 @@ import java.util.Comparator;
 
 @Service
 public class ClientService {
-    public static final String GENERAL_INFO = "Узнать о приюте";
-    public static final String DOG_INFO = "Как забрать собаку";
-    public static final String SEND_REPORT = "Отправить отчёт";
-    public static final String VOLUNTEER = "Позвать волонтёра";
-    public static final String CALLBACK = "Запросить обратный звонок";
-
-    public static final String ABOUT_SHELTER = "Подробнее о приюте";
-    public static final String ADDRESS_SCHEDULE = "Адрес и часы работы";
-    public static final String SAFETY = "Техника безопасности";
-
-    private final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
     private final ClientRepository clientRepository;
-    private final AnimalRepository animalRepository;
-    private final InfoMessageRepository messageRepository;
-    private final CommandService commandService;
 
-    public ClientService(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, CommandService commandService) {
+    public ClientService(ClientRepository clientRepository) {
         this.clientRepository = clientRepository;
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
@@ -124,44 +111,13 @@ public class ClientService {
         return keyboardMarkup;
     }
 
-    private InlineKeyboardMarkup createMenuButtonsGeneralInfo() {
-        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-
-        InlineKeyboardButton aboutShelterButton = new InlineKeyboardButton(ABOUT_SHELTER);
-        InlineKeyboardButton addressScheduleButton = new InlineKeyboardButton(ADDRESS_SCHEDULE);
-        InlineKeyboardButton safetyButton = new InlineKeyboardButton(SAFETY);
-
-        aboutShelterButton.callbackData(aboutShelterButton.text());
-        addressScheduleButton.callbackData(addressScheduleButton.text());
-        safetyButton.callbackData(safetyButton.text());
-
-        keyboardMarkup.addRow(aboutShelterButton);
-        keyboardMarkup.addRow(addressScheduleButton);
-        keyboardMarkup.addRow(safetyButton);
-
-        return keyboardMarkup;
+    public void saveClient(Long chatId) {
+        Client client = new Client();
+        client.setChatId(chatId);
+        clientRepository.save(client);
     }
 
-    public void sendSectionMenu(Long chatId, String text) {
-        switch (text) {
-            case GENERAL_INFO -> {
-                InlineKeyboardMarkup keyboardMarkup = createMenuButtonsGeneralInfo();
-                this.commandService.sendResponseToCommand(chatId, "/description", keyboardMarkup);
-            }
-            case DOG_INFO -> this.commandService.sendResponseToCommand(chatId, "/dogmenu");
-            case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
-            case ADDRESS_SCHEDULE -> {
-                this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
-                this.commandService.SendPhoto(
-                        chatId,
-                        "Схема проезда к нашему приюту",
-                        "images/shelter/shelter_cat_and_dog_location.jpg");
-            }
-            case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
-            case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
-            case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
-            case ABOUT_SHELTER -> this.commandService.sendResponseToCommand(chatId, "/aboutshelter");
-            default -> this.commandService.sendResponseToCommand(chatId, "not found");
-        }
+    public boolean clientExists(Long chatId) {
+        return clientRepository.existsById(chatId);
     }
 }

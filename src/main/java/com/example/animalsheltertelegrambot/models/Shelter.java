@@ -1,12 +1,17 @@
 package com.example.animalsheltertelegrambot.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class Shelter {
-
     @Id
     private String number;
 
@@ -14,6 +19,10 @@ public class Shelter {
     private String address;
     private String telephoneNumber;
     private String timetable;
+
+    @OneToMany(mappedBy = "shelter")
+    @JsonManagedReference
+    private Set<Animal> animals;
 
     public Shelter() {
     }
@@ -56,6 +65,14 @@ public class Shelter {
 
     public void setTimetable(String timetable) {
         this.timetable = timetable;
+    }
+
+    public Set<Animal> getAnimals() {
+        return animals;
+    }
+
+    public void setAnimals(Set<Animal> animals) {
+        this.animals = animals;
     }
 
     @Override
