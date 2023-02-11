@@ -25,17 +25,17 @@ public class MenuService {
 
 
     public static void sendChoiceShelterMenu(Long chatId) {
-        InlineKeyboardMarkup keyboardMarkup = createMenuButtons(CAT_SHELTER, DOG_SHELTER);
+        InlineKeyboardMarkup keyboardMarkup = createMenuDoubleButtons(CAT_SHELTER, DOG_SHELTER);
         MessageSender.sendMessage(chatId, "choice shelter menu", "Выбери раздел:", keyboardMarkup);
     }
 
     public static void sendMainShelterMenu(Long chatId) {
-        InlineKeyboardMarkup keyboardMarkup = createMenuButtons(GENERAL_INFO, ANIMAL_INFO, SEND_REPORT, VOLUNTEER);
+        InlineKeyboardMarkup keyboardMarkup = createMenuDoubleButtons(GENERAL_INFO, ANIMAL_INFO, SEND_REPORT, VOLUNTEER);
         MessageSender.sendMessage(chatId, "main shelter menu", "Выбери раздел:", keyboardMarkup);
     }
 
     public static void sendAboutShelterMenu(Long chatId) {
-        InlineKeyboardMarkup keyboardMarkup = createMenuButtons(ABOUT_SHELTER, ADDRESS_SCHEDULE, SAFETY, PASS_REGISTRATION, CALLBACK, VOLUNTEER);
+        InlineKeyboardMarkup keyboardMarkup = createMenuDoubleButtons(ABOUT_SHELTER, ADDRESS_SCHEDULE, SAFETY, PASS_REGISTRATION, CALLBACK, VOLUNTEER);
         MessageSender.sendMessage(chatId, "about shelter menu", "Выбери раздел:", keyboardMarkup);
     }
 
@@ -62,6 +62,24 @@ public class MenuService {
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         for (String button : buttons) {
             InlineKeyboardButton button1 = new InlineKeyboardButton(button);
+            button1.callbackData(button1.text());
+            keyboardMarkup.addRow(button1);
+        }
+        return keyboardMarkup;
+    }
+
+    public static InlineKeyboardMarkup createMenuDoubleButtons(String ... buttons) {
+        int length = buttons.length;
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        for (int i = 0; i < length / 2; i++) {
+            InlineKeyboardButton button1 = new InlineKeyboardButton(buttons[i*2]);
+            InlineKeyboardButton button2 = new InlineKeyboardButton(buttons[i*2+1]);
+            button1.callbackData(button1.text());
+            button2.callbackData(button2.text());
+            keyboardMarkup.addRow(button1, button2);
+        }
+        if (length % 2 != 0) {
+            InlineKeyboardButton button1 = new InlineKeyboardButton(buttons[length - 1]);
             button1.callbackData(button1.text());
             keyboardMarkup.addRow(button1);
         }

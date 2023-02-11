@@ -47,8 +47,6 @@ public class UserService {
                 ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
                 if (user.getUserStatus() == UserStatus.FILLING_REPORT) {
                     reportService.sendReportThirdStep(chatId, userMessage);
-                } else if (shelterUserRepository.findById(chatId).orElseThrow().getUserStatus() == null) {
-                    messageHandler(chatId, "/start");
                 } else {
                     messageHandler(chatId, userMessage);
                 }
@@ -59,14 +57,13 @@ public class UserService {
                         UserStatus.JUST_USING,
                         ShelterType.DOG_SHELTER,
                         null,
-                        update.message().from().username()));
+                        update.message().chat().firstName()));
                 messageHandler(chatId, "/start");
             };
         } else if (update.callbackQuery() != null) {
             MessageSender.sendCallbackQueryResponse(update.callbackQuery().id());
             Long chatId = update.callbackQuery().message().chat().id();
             String text = update.callbackQuery().data();
-            messageHandler(chatId, MenuService.getCommandByButton(text));
             messageHandler(chatId, MenuService.getCommandByButton(text));
 
         } else if (update.message().photo() != null && update.message().caption() != null) {
@@ -88,7 +85,10 @@ public class UserService {
 
     //determines what the user wants
     private void messageHandler(Long chatId, String userMessage) {
-        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
+        ShelterUser user = shelterUserRepository.findById(chatId).orElse(null);
+        if (user == null) {
+            return;
+        }
         if (userMessage.startsWith("/menu")) {
             switch (userMessage) {
                 case "/menuChoiceShelter" -> MenuService.sendChoiceShelterMenu(chatId);

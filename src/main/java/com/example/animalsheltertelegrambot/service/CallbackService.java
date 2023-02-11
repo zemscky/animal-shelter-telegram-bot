@@ -32,7 +32,7 @@ public class CallbackService {
             } else {
                 user.setUserStatus(UserStatus.SENDING_PHONE_ANSWER);
                 MessageSender.sendMessage(chatId, "callback number saved", "Неверный формат номера телефона, попробуете еще раз? (Выберите ответ: ДА или НЕТ)",
-                        MenuService.createMenuButtons(MenuService.YES, MenuService.NO));
+                        MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
             }
         } else if (user.getUserStatus().equals(UserStatus.SENDING_PHONE_ANSWER)) {
             if (userMessage.equalsIgnoreCase("ДА")) {
@@ -45,7 +45,7 @@ public class CallbackService {
         } else if (user.getUserStatus().equals(UserStatus.JUST_USING)) {
             if (user.getPhoneNumber() != null) {
                 user.setUserStatus(UserStatus.SENDING_PHONE_IS_ACTUAL_ANSWER);
-                MessageSender.sendMessage(chatId, "callbackService number is actual ","Ваш номер " + user.getPhoneNumber() + " - еще актуален? (Напишите ответ: ДА или НЕТ)", MenuService.createMenuButtons(MenuService.YES, MenuService.NO));
+                MessageSender.sendMessage(chatId, "callbackService number is actual ","Ваш номер " + user.getPhoneNumber() + " - еще актуален? (Напишите ответ: ДА или НЕТ)", MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
             } else {
                 user.setUserStatus(UserStatus.SENDING_PHONE);
                 MessageSender.sendMessage(chatId, "phone request", "Пожалуйста, напишите номер телефона(без отступов и разделяющих знаков) для обратной связи");
