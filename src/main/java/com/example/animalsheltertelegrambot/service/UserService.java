@@ -4,8 +4,16 @@ import com.example.animalsheltertelegrambot.models.ShelterType;
 import com.example.animalsheltertelegrambot.models.ShelterUser;
 import com.example.animalsheltertelegrambot.models.UserStatus;
 import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Arrays;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 
 @Service
 public class UserService {
@@ -13,12 +21,14 @@ public class UserService {
     private final InfoMessageService infoMessageService;
     private final CallbackService callbackService;
     private final ReportService reportService;
+    private final FileService fileService;
 
-    public UserService(ShelterUserRepository shelterUserRepository, InfoMessageService infoMessageService, CallbackService callbackService, ReportService reportService) {
+    public UserService(ShelterUserRepository shelterUserRepository, InfoMessageService infoMessageService, CallbackService callbackService, ReportService reportService, FileService fileService) {
         this.shelterUserRepository = shelterUserRepository;
         this.infoMessageService = infoMessageService;
         this.callbackService = callbackService;
         this.reportService = reportService;
+        this.fileService = fileService;
     }
 
     public void updateHandler(Update update) {
@@ -57,6 +67,22 @@ public class UserService {
             Long chatId = update.callbackQuery().message().chat().id();
             String text = update.callbackQuery().data();
             messageHandler(chatId, MenuService.getCommandByButton(text));
+            messageHandler(chatId, MenuService.getCommandByButton(text));
+
+        } else if (update.message().photo() != null && update.message().caption() != null) {
+            String fileName = update.message().caption();
+            Long chatId = update.message().chat().id();
+            PhotoSize[] photos = update.message().photo();
+            PhotoSize photo = Arrays.stream(photos).max(Comparator.comparing(PhotoSize::fileSize)).orElse(null);
+            String fileId = photo.fileId();
+            long fileSize = photo.fileSize();
+            if (fileName.contains("shelter-")) {
+                try {
+                    fileService.uploadPhotoShelter(chatId, fileId, fileName, fileSize);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -72,6 +98,7 @@ public class UserService {
                 default -> MessageSender.sendMessage(chatId, "incorrect menu request!");
             }
         } else if (userMessage.equals("/start")){
+            MessageSender.sendPhoto(chatId, "", "images/shelter/shelter-cat-or-dog.jpg");
             MenuService.sendChoiceShelterMenu(chatId);
         } else if (userMessage.equals("/catShelter")) {
             user.setShelterType(ShelterType.CAT_SHELTER);
@@ -97,6 +124,7 @@ public class UserService {
     }
 
     private void sendFirstGreetings(Long chatId, String userName) {
+        MessageSender.sendPhoto(chatId, "", "images/shelter/shelter_logo.jpg");
         MessageSender.sendMessage(chatId, "first greeting", "Привет! Я бот приюта для животных.\n" +
                 "Могу рассказать о приюте для животных, а так же о том, что необходимо сделать, чтобы забрать питомца из приюта.");
     }
