@@ -3,7 +3,7 @@ package com.example.animalsheltertelegrambot.service;
 import com.example.animalsheltertelegrambot.models.Contact;
 import com.example.animalsheltertelegrambot.models.InfoMessage;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
+import com.example.animalsheltertelegrambot.repositories.UserRepository;
 import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommandServiceTest {
-    ClientRepository clientRepository = mock(ClientRepository.class);
+    UserRepository userRepository = mock(UserRepository.class);
     AnimalRepository animalRepository = mock(AnimalRepository.class);
     InfoMessageRepository messageRepository = mock(InfoMessageRepository.class);
     ContactRepository contactRepository = mock(ContactRepository.class);
@@ -37,7 +37,7 @@ class CommandServiceTest {
     InlineKeyboardMarkup keyboardMarkup = mock(InlineKeyboardMarkup.class);
     BaseResponse baseResponse = mock(BaseResponse.class);
 
-    CommandService commandService = new CommandService(clientRepository, animalRepository, messageRepository, contactRepository);
+    CommandService commandService = new CommandService(userRepository, animalRepository, messageRepository, contactRepository);
 
     @BeforeEach
     void setUp() {
