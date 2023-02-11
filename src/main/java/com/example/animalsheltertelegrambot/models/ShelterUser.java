@@ -20,11 +20,13 @@ public class ShelterUser {
     public ShelterUser(Long chatId,
                        UserStatus userStatus,
                        ShelterType shelterType,
-                       String phoneNumber) {
+                       String phoneNumber,
+                       String username) {
         this.chatId = chatId;
         this.userStatus = userStatus;
         this.shelterType = shelterType;
         this.phoneNumber = phoneNumber;
+        this.username = username;
     }
 
     public Long getChatId() {

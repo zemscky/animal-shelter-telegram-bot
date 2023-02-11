@@ -20,7 +20,7 @@ public class Adopter {
     private String name;
     private String address;
     private int age;
-    private int telephoneNumber;
+    private String telephoneNumber;
 
     @OneToOne(mappedBy = "adopter")
     @JsonBackReference
@@ -28,7 +28,7 @@ public class Adopter {
 
     @OneToOne(mappedBy = "adopter")
     @JsonBackReference
-    private ProbationPeriod probationPeriod;
+    private ProbationPeriod probationPeriod = new ProbationPeriod();
 
     public Adopter() {
     }
@@ -53,7 +53,7 @@ public class Adopter {
         return age;
     }
 
-    public int getTelephoneNumber() {
+    public String getTelephoneNumber() {
         return telephoneNumber;
     }
 
@@ -89,7 +89,7 @@ public class Adopter {
         this.age = age;
     }
 
-    public void setTelephoneNumber(int telephoneNumber) {
+    public void setTelephoneNumber(String telephoneNumber) {
         this.telephoneNumber = telephoneNumber;
     }
 

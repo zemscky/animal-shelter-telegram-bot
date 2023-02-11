@@ -21,21 +21,35 @@ public class UserService {
         this.reportService = reportService;
     }
 
-    public void updateHandle(Update update) {
+    public void updateHandler(Update update) {
+        if (update.message() != null && update.message().photo() != null) {
+            Long chatId = update.message().chat().id();
+            ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+            if (user.getUserStatus() == UserStatus.FILLING_REPORT) {
+                reportService.sendReportSecondStep(chatId, update.message().photo());
+            }
+        }
         if (update.message() != null && update.message().text() != null) {
-//            String username = update.message().from().username();
             Long chatId = update.message().chat().id();
             String userMessage = update.message().text();
-            String userName = update.message().chat().firstName();
+            String userFirstName = update.message().chat().firstName();
             if (this.shelterUserRepository.findById(chatId).isPresent()) {
-                if (shelterUserRepository.findById(chatId).orElseThrow().getUserStatus() == null) {
+                ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+                if (user.getUserStatus() == UserStatus.FILLING_REPORT) {
+                    reportService.sendReportThirdStep(chatId, userMessage);
+                } else if (shelterUserRepository.findById(chatId).orElseThrow().getUserStatus() == null) {
                     messageHandler(chatId, "/start");
                 } else {
                     messageHandler(chatId, userMessage);
                 }
             } else {
-                sendFirstGreetings(chatId, userName);
-                this.shelterUserRepository.save(new ShelterUser(chatId, UserStatus.JUST_USING, ShelterType.DOG_SHELTER, null));
+                sendFirstGreetings(chatId, userFirstName);
+                this.shelterUserRepository.save(new ShelterUser(
+                        chatId,
+                        UserStatus.JUST_USING,
+                        ShelterType.DOG_SHELTER,
+                        null,
+                        update.message().from().username()));
                 messageHandler(chatId, "/start");
             };
         } else if (update.callbackQuery() != null) {

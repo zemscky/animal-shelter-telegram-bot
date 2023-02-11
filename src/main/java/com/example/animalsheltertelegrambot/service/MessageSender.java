@@ -87,6 +87,10 @@ public class MessageSender {
         sendMessage(chatId, text, text, null);
     }
 
+    public static void sendMessage(SendMessage sendMessage) {
+        telegramBot.execute(sendMessage);
+    }
+
     public static void sendPhoto(Long chatId, String caption, String imagePath) {
         try {
             File image = ResourceUtils.getFile("classpath:" + imagePath);
