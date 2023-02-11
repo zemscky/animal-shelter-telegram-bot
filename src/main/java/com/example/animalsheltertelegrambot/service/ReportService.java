@@ -1,8 +1,11 @@
 package com.example.animalsheltertelegrambot.service;
 
+import com.example.animalsheltertelegrambot.models.Adopter;
 import com.example.animalsheltertelegrambot.models.ShelterUser;
+import com.example.animalsheltertelegrambot.models.UserStatus;
 import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
 import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
+import com.pengrad.telegrambot.model.PhotoSize;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,13 +23,14 @@ public class ReportService {
         return userMessage.equals("/sendReport");
     }
 
-    public void sendReportMessage(Long chatId) {
-        if (userIsAdopter(chatId)) {
-
+    public void sendReportFirstStep(Long chatId) {
+        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+        if (userIsAdopter(user.getUsername())) {
+            user.setUserStatus(UserStatus.FILLING_REPORT);
             MessageSender.sendMessage(chatId, "/sendReport",
                     "Отлично, приступим!\n" +
-                            "В качестве отчёта Вам необходимо прислать " +
-                            "фото питомца, а также как можно более подробное описание:\n" +
+                            "В качестве отчёта Вам необходимо прислать в первом сообщении " +
+                            "фото питомца, а во втором - как можно более подробное описание:\n" +
                             "- рациона животного,\n" +
                             "- общего самочувствия и привыкания к новому месту,\n" +
                             "- изменений в поведении: отказ от старых привычек, приобретение новых.\n" +
@@ -40,7 +44,13 @@ public class ReportService {
         }
     }
 
-    public boolean userIsAdopter(Long chatId) {
-        return adopterRepository.existsById(chatId);
+    public boolean userIsAdopter(String username) {
+        return adopterRepository.findAdopterByUsername(username).isPresent();
+    }
+
+    public void sendReportSecondStep(Long chatId, PhotoSize[] photo) {
+        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+        Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
+
     }
 }

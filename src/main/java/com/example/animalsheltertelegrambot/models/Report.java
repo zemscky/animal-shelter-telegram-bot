@@ -1,5 +1,6 @@
 package com.example.animalsheltertelegrambot.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.pengrad.telegrambot.model.File;
 
 import javax.persistence.Entity;
@@ -16,6 +17,7 @@ public class Report {
     Long id;
 
     @ManyToOne
+    @JsonBackReference
     private ProbationPeriod probationPeriod;
 
     private String entry;

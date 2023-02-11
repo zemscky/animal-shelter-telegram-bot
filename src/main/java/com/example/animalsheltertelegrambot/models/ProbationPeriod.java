@@ -1,5 +1,7 @@
 package com.example.animalsheltertelegrambot.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -15,11 +17,15 @@ public class ProbationPeriod {
     private LocalDate ends;
 
     @OneToOne
+    @JsonBackReference
     private Animal animal;
 
-    @ManyToOne
+    @OneToOne
+    @JsonBackReference
     private Adopter adopter;
 
+    @OneToMany
+    @JsonBackReference
     private HashMap<LocalDate, Report> reports;
 
     public ProbationPeriod() {

@@ -23,6 +23,7 @@ public class UserService {
 
     public void updateHandle(Update update) {
         if (update.message() != null && update.message().text() != null) {
+//            String username = update.message().from().username();
             Long chatId = update.message().chat().id();
             String userMessage = update.message().text();
             String userName = update.message().chat().firstName();
@@ -77,7 +78,7 @@ public class UserService {
         } else if (userMessage.equals("/volunteer")) {
             MessageSender.sendMessage(chatId, "Ок, позову свободного Волонтера");
         } else if (reportService.isSendReportCommand(userMessage, chatId)) {
-            reportService.sendReportMessage(chatId);
+            reportService.sendReportFirstStep(chatId);
         } else {
             MessageSender.sendMessage(chatId, "default", "Не понимаю... попробуй /start");
         }

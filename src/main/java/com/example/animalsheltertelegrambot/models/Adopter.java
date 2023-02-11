@@ -1,11 +1,10 @@
 package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
@@ -17,15 +16,19 @@ public class Adopter {
     private long id;
 
     private Long chatId;
-
+    private String username;
     private String name;
     private String address;
     private int age;
     private int telephoneNumber;
 
-    @OneToMany(mappedBy = "adopter")
+    @OneToOne(mappedBy = "adopter")
     @JsonBackReference
-    private Set<Animal> animals;
+    private Animal animal;
+
+    @OneToOne(mappedBy = "adopter")
+    @JsonBackReference
+    private ProbationPeriod probationPeriod;
 
     public Adopter() {
     }
@@ -54,8 +57,8 @@ public class Adopter {
         return telephoneNumber;
     }
 
-    public Set<Animal> getAnimals() {
-        return animals;
+    public Animal getAnimal() {
+        return animal;
     }
 
     public void setId(long id) {
@@ -82,8 +85,8 @@ public class Adopter {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public void setAnimals(Set<Animal> animals) {
-        this.animals = animals;
+    public void setAnimals(Animal animal) {
+        this.animal = animal;
     }
 
     @Override
