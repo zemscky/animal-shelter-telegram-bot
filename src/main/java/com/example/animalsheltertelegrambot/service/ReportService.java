@@ -36,8 +36,6 @@ public class ReportService {
     public void sendReportFirstStep(Long chatId) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         if (userIsAdopter(user.getUsername())) {
-            user.setUserStatus(UserStatus.FILLING_REPORT);
-            shelterUserRepository.save(user);
 
             Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
             if (adopter.getProbationPeriod() == null) {
@@ -49,10 +47,25 @@ public class ReportService {
 
                 probationPeriodRepository.save(probationPeriod);
                 adopterRepository.save(adopter);
+
+            } else if (reportRepository.existsByProbationPeriodAndDate(
+                    adopter.getProbationPeriod(),
+                    LocalDate.now()
+            )) {
+                MessageSender.sendMessage(chatId, "Вы уже отправили сегодняшний отчёт. " +
+                        "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день. " +
+                        "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                        "Или запросите обратный звонок - /callback");
+                return;
             }
+
+            user.setUserStatus(UserStatus.FILLING_REPORT);
+            shelterUserRepository.save(user);
 
             MessageSender.sendMessage(chatId, "/sendReport",
                     "Отлично, приступим!\n" +
+                            "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день каждый день " +
+                            "до 21:00.\n" +
                             "В качестве отчёта Вам необходимо прислать в первом сообщении " +
                             "фото питомца, а во втором - как можно более подробное описание:\n" +
                             "- рациона животного,\n" +
