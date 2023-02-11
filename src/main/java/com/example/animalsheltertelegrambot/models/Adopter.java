@@ -61,6 +61,14 @@ public class Adopter {
         return animal;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public ProbationPeriod getProbationPeriod() {
+        return probationPeriod;
+    }
+
     public void setId(long id) {
         this.id = id;
     }
@@ -87,6 +95,18 @@ public class Adopter {
 
     public void setAnimals(Animal animal) {
         this.animal = animal;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setAnimal(Animal animal) {
+        this.animal = animal;
+    }
+
+    public void setProbationPeriod(ProbationPeriod probationPeriod) {
+        this.probationPeriod = probationPeriod;
     }
 
     @Override

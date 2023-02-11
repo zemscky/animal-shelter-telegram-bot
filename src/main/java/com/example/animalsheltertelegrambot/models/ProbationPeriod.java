@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -26,7 +28,7 @@ public class ProbationPeriod {
 
     @OneToMany
     @JsonBackReference
-    private HashMap<LocalDate, Report> reports;
+    private List<Report> reports = new ArrayList<>();
 
     public ProbationPeriod() {
     }
@@ -47,7 +49,7 @@ public class ProbationPeriod {
         return adopter;
     }
 
-    public HashMap<LocalDate, Report> getReports() {
+    public List<Report> getReports() {
         return reports;
     }
 
@@ -67,7 +69,7 @@ public class ProbationPeriod {
         this.adopter = adopter;
     }
 
-    public void setReports(HashMap<LocalDate, Report> reports) {
+    public void setReports(List<Report> reports) {
         this.reports = reports;
     }
 

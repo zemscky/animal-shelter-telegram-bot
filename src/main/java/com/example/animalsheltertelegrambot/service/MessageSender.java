@@ -98,4 +98,7 @@ public class MessageSender {
         }
     }
 
+    public static void sendPhoto(SendPhoto sendPhoto) {
+        telegramBot.execute(sendPhoto);
+    }
 }

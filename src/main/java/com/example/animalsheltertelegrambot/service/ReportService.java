@@ -1,12 +1,19 @@
 package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.Adopter;
+import com.example.animalsheltertelegrambot.models.Report;
 import com.example.animalsheltertelegrambot.models.ShelterUser;
 import com.example.animalsheltertelegrambot.models.UserStatus;
 import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
 import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
 import com.pengrad.telegrambot.model.PhotoSize;
+import com.pengrad.telegrambot.request.SendPhoto;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
 
 @Service
 public class ReportService {
@@ -52,5 +59,19 @@ public class ReportService {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
+        String photoId = Objects.requireNonNull(Arrays.stream(photo).max(Comparator.comparing(PhotoSize::fileSize))
+                .orElse(null)).fileId();
+
+        Report report = new Report();
+        report.setDate(LocalDate.now());
+        report.setPhotoId(photoId);
+
+        adopter.getProbationPeriod().getReports().add(report);
+
+        SendPhoto sendPhoto = new SendPhoto(chatId, photoId);
+        MessageSender.sendPhoto(sendPhoto);
+        MessageSender.sendMessage(chatId,
+                "Спасибо! Фото получено.\n" +
+                        "Теперь пришлите, пожалуйста, письменный отчёт.");
     }
 }

@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
@@ -20,8 +21,9 @@ public class Report {
     @JsonBackReference
     private ProbationPeriod probationPeriod;
 
+    private LocalDate date;
     private String entry;
-    private File photo;
+    private String photoId;
 
     public Report() {
     }
@@ -38,8 +40,16 @@ public class Report {
         return entry;
     }
 
-    public File getPhoto() {
-        return photo;
+    public String getPhotoId() {
+        return photoId;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 
     public void setId(Long id) {
@@ -54,8 +64,8 @@ public class Report {
         this.entry = entry;
     }
 
-    public void setPhoto(File photo) {
-        this.photo = photo;
+    public void setPhotoId(String photoId) {
+        this.photoId = photoId;
     }
 
     @Override
