@@ -1,9 +1,9 @@
 package com.example.animalsheltertelegrambot.listener;
 
-import com.example.animalsheltertelegrambot.service.BotExecutionService;
-import com.example.animalsheltertelegrambot.service.HeadService;
-import com.example.animalsheltertelegrambot.service.UserService;
+import com.example.animalsheltertelegrambot.service.ClientService;
 import com.example.animalsheltertelegrambot.service.CommandService;
+import com.example.animalsheltertelegrambot.service.MessageSender;
+import com.example.animalsheltertelegrambot.service.UserService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Serves as a controller regarding processing user`s messages and commands.
- * @see UserService
+ * @see ClientService
  */
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
@@ -24,42 +24,35 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     private final TelegramBot telegramBot;
-    private final UserService userService;
+    private final ClientService clientService;
     private final CommandService commandService;
-    private final HeadService headService;
-    private final BotExecutionService botExecutionService;
+    private final UserService userService;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, UserService userService, CommandService commandService, HeadService headService, BotExecutionService botExecutionService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService, CommandService commandService, UserService userService) {
         this.telegramBot = telegramBot;
-        this.userService = userService;
+        this.clientService = clientService;
         this.commandService = commandService;
-        this.headService = headService;
-        this.botExecutionService = botExecutionService;
+        this.userService = userService;
     }
 
     @PostConstruct
     public void init() {
         telegramBot.setUpdatesListener(this);
         commandService.setTelegramBot(this.telegramBot);
-        headService.setTelegramBot(this.telegramBot);
-        botExecutionService.setTelegramBot(this.telegramBot);
+        MessageSender.setTelegramBot(this.telegramBot);
     }
 
     /**
      * Processes incoming messages from user and sends responses.
      * @param updates new messages from user
      * @return
-     * @see UserService#sendMessage(Update)
+     * @see ClientService#sendMessage(Update)
      */
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
-            if (update.message() != null) {
-                headService.analyzeMessageAndRedirect(update.message());
-            } else if (update.callbackQuery() != null) {
-                headService.analyzeCallbackQueryAndRedirect(update.callbackQuery());
-            }
+            userService.updateHandle(update);
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }

@@ -33,6 +33,7 @@ VALUES
     ('2', 'Собачки', 'Ковров, ул. Лесная, д. 2', '+7-888-88-88', 'Пн-Пт с 8-00 до 20-00'),
     ('3', 'Жирафы', 'Можайск, ул. Ленина, д. 3', '+7-777-77-77', 'Пн-Пт с 8-00 до 20-00'),
     ('4', 'Слоны', 'Тула, ул. Красная, д. 4', '+7-666-66-66', 'Пн-Пт с 8-00 до 20-00');
+
 -- changeset zemscky:5
 UPDATE public.info_message
 SET text = 'Выберите раздел:'::varchar(255)
@@ -59,4 +60,72 @@ VALUES ('/documents'::varchar(255),
         'Данный перечень не является полным. Сотрудники приюта оставляют за собой ПРАВО ОТКАЗАТЬ в передаче животного и по иным причинам. ' ||
         'Всем желающим взять животное из приюта надо помнить о том, что передача животного из приюта новому владельцу – это НЕ ОБЯЗАННОСТЬ, а ПРАВО приюта.'::varchar(255));
 
+-- changeset nmavro:7
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/start', 'Привет! Я бот приюта для животных. Выбери раздел из списка:');
 
+-- changeset nmavro:8
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/dogmenu', 'Здесь должно быть dogmenu, но пока что его нету');
+
+-- changeset nmavro:9
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/sendreportmenu', 'Здесь должно быть sendreportmenu, но пока что его нету');
+
+-- changeset nmavro:10
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/volunteer', 'Хорошо, позову Волонтера (или нет)');
+
+-- changeset nmavro:11
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/addressandschedule', 'Адрес: г. Астана, ул. Тестовая, д.0. Часы работы: 10:00 - 20:00');
+
+-- changeset nmavro:12
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/safety', 'техника безопасности на территории приюта');
+
+-- changeset nmavro:13
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/description', 'Выберите раздел:');
+
+-- changeset nmavro:14
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/passRegistration', 'У охраны собак такой номер +64684684');
+
+-- changeset nmavro:15
+INSERT INTO public.dog_info_message (tag, text)
+VALUES ('/aboutshelter',
+        'Мы приют для собак Все мы знаем, что нашим маленьким друзьям очень часто приходится нелегко, и только мы можем им помочь.Для того, чтобы спасти жизнь, достаточно совсем немного...');
+
+-- changeset nmavro:16
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/dogmenu', 'Здесь должно быть dogmenu, но пока что его нету');
+
+-- changeset nmavro:17
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/sendreportmenu', 'Здесь должно быть sendreportmenu, но пока что его нету');
+
+-- changeset nmavro:18
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/volunteer', 'Хорошо, позову Волонтера (или нет)');
+
+-- changeset nmavro:19
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/addressandschedule', 'Адрес: г. Астана, ул. Тестовая, д.0. Часы работы: 10:00 - 20:00');
+
+-- changeset nmavro:20
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/safety', 'техника безопасности на территории приюта');
+
+-- changeset nmavro:21
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/description', 'Выберите раздел:');
+
+-- changeset nmavro:22
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/passRegistration', 'У охраны собак такой номер +64684684');
+
+-- changeset nmavro:23
+INSERT INTO public.cat_info_message (tag, text)
+VALUES ('/aboutshelter',
+        'Мы приют для собак Все мы знаем, что нашим маленьким друзьям очень часто приходится нелегко, и только мы можем им помочь.Для того, чтобы спасти жизнь, достаточно совсем немного...');
