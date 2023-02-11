@@ -2,24 +2,21 @@ package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.*;
 import com.example.animalsheltertelegrambot.repositories.*;
-import liquibase.pro.packaged.M;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.Path;
 
 @Service
 public class InfoMessageService {
     private final CatInfoMessageRepository catInfoMessageRepository;
     private final DogInfoMessageRepository dogInfoMessageRepository;
-    private final UserRepository userRepository;
+    private final ShelterUserRepository shelterUserRepository;
     private final ShelterRepository shelterRepository;
     private final LocationMapRepository locationMapRepository;
 
-    public InfoMessageService(CatInfoMessageRepository catInfoMessageRepository, DogInfoMessageRepository dogInfoMessageRepository, UserRepository userRepository, ShelterRepository shelterRepository, LocationMapRepository locationMapRepository) {
+    public InfoMessageService(CatInfoMessageRepository catInfoMessageRepository, DogInfoMessageRepository dogInfoMessageRepository, ShelterUserRepository shelterUserRepository, ShelterRepository shelterRepository, LocationMapRepository locationMapRepository) {
         this.catInfoMessageRepository = catInfoMessageRepository;
         this.dogInfoMessageRepository = dogInfoMessageRepository;
-        this.userRepository = userRepository;
+        this.shelterUserRepository = shelterUserRepository;
         this.shelterRepository = shelterRepository;
         this.locationMapRepository = locationMapRepository;
     }
@@ -31,7 +28,7 @@ public class InfoMessageService {
 //            MessageSender.sendPhoto(chatId,
 //                    "Схема проезда к нашему приюту",
 //                    "images/shelter/shelter_cat_and_dog_location.jpg");
-            ShelterType shelterType = userRepository.findById(chatId).orElseThrow().getShelterType();
+            ShelterType shelterType = shelterUserRepository.findById(chatId).orElseThrow().getShelterType();
             Shelter shelter = shelterRepository.findByShelterType(shelterType).get();
             LocationMap locationMap = locationMapRepository.findByShelterNumber(shelter.getNumber()).get();
             MessageSender.sendAddress(chatId, shelter);
@@ -43,7 +40,7 @@ public class InfoMessageService {
 
     public JpaRepository<? extends Object, String> getRepository(Long chatId) {
         ShelterType shelterType = ShelterType.DOG_SHELTER;
-        shelterType = userRepository.findById(chatId).orElseThrow().getShelterType();
+        shelterType = shelterUserRepository.findById(chatId).orElseThrow().getShelterType();
         if (shelterType == null) {
             throw new RuntimeException();
         }
