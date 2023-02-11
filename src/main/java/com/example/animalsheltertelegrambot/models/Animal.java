@@ -26,7 +26,7 @@ public class Animal {
     private Client client;
 
     @ManyToOne(fetch = FetchType.EAGER)                 //с FetchType.LAZY при получении приюта животного ошибка 500
-    @JoinColumn(name = "shelter_id", nullable = false)
+    @JoinColumn(name = "shelter_number", nullable = false)
     @JsonBackReference
     private Shelter shelter;
 

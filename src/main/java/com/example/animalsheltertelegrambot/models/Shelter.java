@@ -24,6 +24,10 @@ public class Shelter {
     @JsonManagedReference
     private Set<Animal> animals;
 
+    @OneToMany(mappedBy = "shelter")
+    @JsonManagedReference
+    private Set<Client> clients;
+
     public Shelter() {
     }
 

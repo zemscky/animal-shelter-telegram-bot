@@ -2,10 +2,7 @@ package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
@@ -26,6 +23,11 @@ public class Client {
     @OneToMany(mappedBy = "client")
     @JsonBackReference
     private Set<Animal> animals;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "shelter_number", nullable = false)
+    @JsonBackReference
+    private Shelter shelter;
 
     public Client() {
     }
