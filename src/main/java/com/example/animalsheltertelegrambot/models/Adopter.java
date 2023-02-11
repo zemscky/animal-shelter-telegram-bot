@@ -23,7 +23,7 @@ public class Adopter {
     private int age;
     private int telephoneNumber;
 
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "adopter")
     @JsonBackReference
     private Set<Animal> animals;
 

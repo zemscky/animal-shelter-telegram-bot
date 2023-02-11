@@ -21,7 +21,7 @@ public class Animal {
     private String specialNeed;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "client_id", nullable = true)
+    @JoinColumn(name = "adopter_id", nullable = true)
     @JsonManagedReference
     private Adopter adopter;
 
