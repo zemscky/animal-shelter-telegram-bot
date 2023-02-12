@@ -121,9 +121,10 @@ public class ReportService {
         Report report = reportRepository.findReportByProbationPeriodAndDate(
                 adopter.getProbationPeriod(),
                 LocalDate.now()
-        ).orElseThrow();
+        ).orElse(new Report());
 
         report.setEntry(messageText);
+        report.setProbationPeriod(adopter.getProbationPeriod());
         reportRepository.save(report);
 
         Report savedReport = reportRepository.findReportByProbationPeriodAndDate(
@@ -141,4 +142,65 @@ public class ReportService {
         user.setUserStatus(UserStatus.JUST_USING);
         shelterUserRepository.save(user);
     }
+
+    public static boolean isReportStatus(ShelterUser user) {
+        UserStatus status = user.getUserStatus();
+        if (status == UserStatus.FILLING_REPORT || status == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
+            return true;
+        }
+        return false;
+    }
+
+    public void reportHandler(Long chatId, String userMessage, PhotoSize[] photoSize) {
+        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+        if (user.getUserStatus() == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
+            sendTryAgainMessage(chatId, userMessage, user);
+            return;
+        }
+
+        Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
+
+        Report report = this.reportRepository.findReportByProbationPeriodAndDate(
+                adopter.getProbationPeriod(), LocalDate.now()).
+                orElse(new Report());
+        report.setDate(LocalDate.now());
+        report.setProbationPeriod(adopter.getProbationPeriod());
+
+        if (photoSize != null && report.getPhotoId() == null) {
+            sendReportSecondStep(chatId, photoSize);
+            return;
+        }
+        if (userMessage != null && report.getPhotoId() != null) {
+            if (userMessage.length() < 20) {
+                MessageSender.sendMessage(chatId, "incorrect length", "Информация указана не в полном объеме, попробуете еще раз?",
+                        MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
+                user.setUserStatus(UserStatus.REPORT_YOU_WANNA_TRY_AGAIN);
+                shelterUserRepository.save(user);
+                return;
+            }
+            sendReportThirdStep(chatId, userMessage);
+            return;
+        }
+        if (userMessage != null && report.getPhotoId() == null) {
+            MessageSender.sendMessage(chatId, "Не правильный порядок действий" ,"Не правильный порядок действий. Нужно сперва загрузить фотографию. Попробуете еще раз?",
+                    MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
+
+            user.setUserStatus(UserStatus.REPORT_YOU_WANNA_TRY_AGAIN);
+            shelterUserRepository.save(user);
+        }
+    }
+
+    public void sendTryAgainMessage(Long chatId, String userMessage, ShelterUser user) {
+        if (userMessage.equalsIgnoreCase("ДА")) {
+            user.setUserStatus(UserStatus.FILLING_REPORT);
+            shelterUserRepository.save(user);
+            MessageSender.sendMessage(chatId, "Хорошо, тогда попробуйте еще раз");
+        } else {
+            user.setUserStatus(UserStatus.JUST_USING);
+            shelterUserRepository.save(user);
+            MessageSender.sendMessage(chatId, "Нет? Тогда вернёмся к этому вопросу позже. Если нужно вернуться в начальное меню, используйте /start");
+        }
+
+    }
+
 }

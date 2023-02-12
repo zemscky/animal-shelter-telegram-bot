@@ -4,6 +4,7 @@ import com.example.animalsheltertelegrambot.models.ShelterType;
 import com.example.animalsheltertelegrambot.models.ShelterUser;
 import com.example.animalsheltertelegrambot.models.UserStatus;
 import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
+import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import org.springframework.stereotype.Service;
@@ -11,20 +12,18 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Arrays;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Comparator;
 
 @Service
 public class UserService {
-    private final ShelterUserRepository shelterUserRepository;
+    private final ShelterUserRepository userRepository;
     private final InfoMessageService infoMessageService;
     private final CallbackService callbackService;
     private final ReportService reportService;
     private final FileService fileService;
 
     public UserService(ShelterUserRepository shelterUserRepository, InfoMessageService infoMessageService, CallbackService callbackService, ReportService reportService, FileService fileService) {
-        this.shelterUserRepository = shelterUserRepository;
+        this.userRepository = shelterUserRepository;
         this.infoMessageService = infoMessageService;
         this.callbackService = callbackService;
         this.reportService = reportService;
@@ -32,39 +31,43 @@ public class UserService {
     }
 
     public void updateHandler(Update update) {
-        if (update.message() != null && update.message().photo() != null) {
-            Long chatId = update.message().chat().id();
-            ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
-            if (user.getUserStatus() == UserStatus.FILLING_REPORT) {
-                reportService.sendReportSecondStep(chatId, update.message().photo());
-            }
-        }
-        if (update.message() != null && update.message().text() != null) {
+        if (update.message() != null) {
+
             Long chatId = update.message().chat().id();
             String userMessage = update.message().text();
             String userFirstName = update.message().chat().firstName();
-            if (this.shelterUserRepository.findById(chatId).isPresent()) {
-                ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
-                if (user.getUserStatus() == UserStatus.FILLING_REPORT) {
-                    reportService.sendReportThirdStep(chatId, userMessage);
-                } else {
-                    messageHandler(chatId, userMessage);
-                }
-            } else {
+            PhotoSize[] photoSize = update.message().photo();
+
+            if (!this.userRepository.findById(chatId).isPresent()) {
                 sendFirstGreetings(chatId, userFirstName);
-                this.shelterUserRepository.save(new ShelterUser(
-                        chatId,
-                        UserStatus.JUST_USING,
-                        ShelterType.DOG_SHELTER,
-                        null,
-                        update.message().chat().firstName()));
+                this.userRepository.save(new ShelterUser(chatId, UserStatus.JUST_USING, ShelterType.DOG_SHELTER, null, userFirstName));
                 messageHandler(chatId, "/start");
-            };
-        } else if (update.callbackQuery() != null) {
+                return;
+             }
+
+            ShelterUser user = userRepository.findById(chatId).orElse(null);
+            if (user == null) {
+                return;
+            }
+
+            if (userMessage != null && user.getUserStatus() == UserStatus.JUST_USING) {
+                messageHandler(chatId, userMessage);
+                return;
+            }
+
+            if (ReportService.isReportStatus(user)) {
+                reportService.reportHandler(chatId, userMessage, photoSize);
+                return;
+            }
+            return;
+        }
+
+        if (update.callbackQuery() != null) {
             MessageSender.sendCallbackQueryResponse(update.callbackQuery().id());
-            Long chatId = update.callbackQuery().message().chat().id();
+            CallbackQuery callbackQuery = update.callbackQuery();
+            Long chatId2 = update.callbackQuery().message().chat().id();
             String text = update.callbackQuery().data();
-            messageHandler(chatId, MenuService.getCommandByButton(text));
+            messageHandler(chatId2, MenuService.getCommandByButton(text));
 
         } else if (update.message().photo() != null && update.message().caption() != null) {
             String fileName = update.message().caption();
@@ -85,8 +88,12 @@ public class UserService {
 
     //determines what the user wants
     private void messageHandler(Long chatId, String userMessage) {
-        ShelterUser user = shelterUserRepository.findById(chatId).orElse(null);
+        ShelterUser user = userRepository.findById(chatId).orElse(null);
         if (user == null) {
+            return;
+        }
+        if (ReportService.isReportStatus(user)) {
+            reportService.reportHandler(chatId, userMessage, null);
             return;
         }
         if (userMessage.startsWith("/menu")) {
@@ -104,12 +111,12 @@ public class UserService {
             user.setShelterType(ShelterType.CAT_SHELTER);
             MessageSender.sendMessage(chatId, "Вы выбрали приют для котов");
             MenuService.sendMainShelterMenu(chatId);
-            this.shelterUserRepository.save(user);
+            this.userRepository.save(user);
         } else if (userMessage.equals("/dogShelter")) {
             MessageSender.sendMessage(chatId, "Вы выбрали приют для собак");
             user.setShelterType(ShelterType.DOG_SHELTER);
             MenuService.sendMainShelterMenu(chatId);
-            this.shelterUserRepository.save(user);
+            this.userRepository.save(user);
         } else if (infoMessageService.isInfo(userMessage, chatId)) {
             infoMessageService.sendInfoMessage(chatId, userMessage);
         } else if (callbackService.isCallbackRequest(userMessage, chatId)) {
