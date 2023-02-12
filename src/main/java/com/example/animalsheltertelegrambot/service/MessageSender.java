@@ -2,8 +2,6 @@ package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.Shelter;
 import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.ClientRepository;
-import com.example.animalsheltertelegrambot.repositories.ContactRepository;
 import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
@@ -27,17 +25,14 @@ public class MessageSender {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageSender.class);
 
-    private final ClientRepository clientRepository;
     private final AnimalRepository animalRepository;
     private final InfoMessageRepository messageRepository;
-    private final ContactRepository contactRepository;
     private static TelegramBot telegramBot;
 
-    public MessageSender(ClientRepository clientRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, ContactRepository contactRepository) {
-        this.clientRepository = clientRepository;
+    public MessageSender(AnimalRepository animalRepository,
+                         InfoMessageRepository messageRepository) {
         this.animalRepository = animalRepository;
         this.messageRepository = messageRepository;
-        this.contactRepository = contactRepository;
     }
 
     public static void setTelegramBot(TelegramBot telegramBot) {
@@ -89,6 +84,10 @@ public class MessageSender {
         sendMessage(chatId, text, text, null);
     }
 
+    public static void sendMessage(SendMessage sendMessage) {
+        telegramBot.execute(sendMessage);
+    }
+
     public static void sendPhoto(Long chatId, String caption, String imagePath) {
         try {
             File image = ResourceUtils.getFile("classpath:" + imagePath);
@@ -119,5 +118,8 @@ public class MessageSender {
                                 "Адрес: " + shelter.getAddress() + "\n" +
                                 "Телефон: " + shelter.getTelephoneNumber() + "\n" +
                                 "Расписание: " + shelter.getTimetable()));
+    }
+    public static void sendPhoto(SendPhoto sendPhoto) {
+        telegramBot.execute(sendPhoto);
     }
 }

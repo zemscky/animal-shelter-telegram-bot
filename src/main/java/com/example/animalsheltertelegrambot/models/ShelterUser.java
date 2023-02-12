@@ -12,15 +12,21 @@ public class ShelterUser {
     UserStatus userStatus;
     ShelterType shelterType;
     String phoneNumber;
+    String username;
 
     public ShelterUser() {
     }
 
-    public ShelterUser(Long chatId, UserStatus userStatus, ShelterType shelterType, String phoneNumber) {
+    public ShelterUser(Long chatId,
+                       UserStatus userStatus,
+                       ShelterType shelterType,
+                       String phoneNumber,
+                       String username) {
         this.chatId = chatId;
         this.userStatus = userStatus;
         this.shelterType = shelterType;
         this.phoneNumber = phoneNumber;
+        this.username = username;
     }
 
     public Long getChatId() {
@@ -33,6 +39,14 @@ public class ShelterUser {
 
     public UserStatus getUserStatus() {
         return userStatus;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public void setUserStatus(UserStatus userStatus) {

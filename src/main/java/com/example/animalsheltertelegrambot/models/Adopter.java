@@ -2,32 +2,33 @@ package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
-public class Client {
+public class Adopter {
 
     @Id
     @GeneratedValue
     private long id;
 
     private Long chatId;
-
+    private String username;
     private String name;
     private String address;
     private int age;
-    private int telephoneNumber;
+    private String telephoneNumber;
 
-    @OneToMany(mappedBy = "client")
+    @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
     @JsonBackReference
-    private Set<Animal> animals;
+    private Animal animal;
 
-    public Client() {
+    @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
+    @JoinColumn
+    @JsonBackReference
+    private ProbationPeriod probationPeriod = new ProbationPeriod();
+
+    public Adopter() {
     }
 
     public long getId() {
@@ -50,12 +51,20 @@ public class Client {
         return age;
     }
 
-    public int getTelephoneNumber() {
+    public String getTelephoneNumber() {
         return telephoneNumber;
     }
 
-    public Set<Animal> getAnimals() {
-        return animals;
+    public Animal getAnimal() {
+        return animal;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public ProbationPeriod getProbationPeriod() {
+        return probationPeriod;
     }
 
     public void setId(long id) {
@@ -78,20 +87,32 @@ public class Client {
         this.age = age;
     }
 
-    public void setTelephoneNumber(int telephoneNumber) {
+    public void setTelephoneNumber(String telephoneNumber) {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public void setAnimals(Set<Animal> animals) {
-        this.animals = animals;
+    public void setAnimals(Animal animal) {
+        this.animal = animal;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setAnimal(Animal animal) {
+        this.animal = animal;
+    }
+
+    public void setProbationPeriod(ProbationPeriod probationPeriod) {
+        this.probationPeriod = probationPeriod;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Client client = (Client) o;
-        return id == client.id;
+        Adopter adopter = (Adopter) o;
+        return id == adopter.id;
     }
 
     @Override
