@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AnimalRepository extends JpaRepository<Animal, Long> {
-    @Query("SELECT a FROM Animal a WHERE a.species = ?1")
-    Animal getAnimalBy(Animal.AnimalSpecies species);
+//    @Query("SELECT a FROM Animal a WHERE a.species = ?1")
+//    Animal getAnimalBy(Animal.AnimalSpecies species);
 }
