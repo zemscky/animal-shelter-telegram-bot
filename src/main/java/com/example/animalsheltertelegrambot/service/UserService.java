@@ -59,6 +59,11 @@ public class UserService {
                 reportService.reportHandler(chatId, userMessage, photoSize);
                 return;
             }
+
+            if (callbackService.isCallbackRequest(userMessage, chatId)) {
+                callbackService.sendCallbackMessage(userMessage, chatId);
+                return;
+            }
             return;
         }
 
