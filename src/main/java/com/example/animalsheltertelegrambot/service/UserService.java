@@ -68,6 +68,7 @@ public class UserService {
         }
 
         if (update.callbackQuery() != null) {
+
             MessageSender.sendCallbackQueryResponse(update.callbackQuery().id());
             CallbackQuery callbackQuery = update.callbackQuery();
             Long chatId2 = update.callbackQuery().message().chat().id();
@@ -128,7 +129,7 @@ public class UserService {
             callbackService.sendCallbackMessage(userMessage, chatId);
         } else if (userMessage.equals("/volunteer")) {
             MessageSender.sendMessage(chatId, "Ок, позову свободного Волонтера");
-        } else if (reportService.isSendReportCommand(userMessage, chatId)) {
+        } else if (reportService.isSendReportCommand(userMessage)) {
             reportService.sendReportFirstStep(chatId);
         } else {
             MessageSender.sendMessage(chatId, "default", "Не понимаю... попробуй /start");

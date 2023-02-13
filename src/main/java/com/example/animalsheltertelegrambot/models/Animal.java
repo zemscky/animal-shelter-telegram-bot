@@ -18,9 +18,9 @@ public class Animal {
     private String species;
     private int age;
     private String uniqueCharacteristic;
-    private String specialNeed;
+    private String specialNeeds;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "adopter_id", nullable = true)
     @JsonManagedReference
     private Adopter adopter;
@@ -29,6 +29,11 @@ public class Animal {
     @JoinColumn(name = "shelter_id", nullable = false)
     @JsonBackReference
     private Shelter shelter;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn
+    @JsonBackReference
+    private ProbationPeriod probationPeriod;
 
     public Animal() {
     }
@@ -57,8 +62,8 @@ public class Animal {
         return uniqueCharacteristic;
     }
 
-    public String getSpecialNeed() {
-        return specialNeed;
+    public String getSpecialNeeds() {
+        return specialNeeds;
     }
 
     public Adopter getClient() {
@@ -93,8 +98,8 @@ public class Animal {
         this.uniqueCharacteristic = uniqueCharacteristic;
     }
 
-    public void setSpecialNeed(String specialNeed) {
-        this.specialNeed = specialNeed;
+    public void setSpecialNeeds(String specialNeeds) {
+        this.specialNeeds = specialNeeds;
     }
 
     public void setClient(Adopter adopter) {

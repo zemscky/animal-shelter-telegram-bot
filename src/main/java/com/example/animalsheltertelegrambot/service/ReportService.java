@@ -1,21 +1,24 @@
 package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.*;
-import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
-import com.example.animalsheltertelegrambot.repositories.ProbationPeriodRepository;
-import com.example.animalsheltertelegrambot.repositories.ReportRepository;
-import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
+import com.example.animalsheltertelegrambot.repositories.*;
 import com.pengrad.telegrambot.model.PhotoSize;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class ReportService {
+
+//    Logger logger = LoggerFactory.getLogger(ReportService.class);
+
     private final ShelterUserRepository shelterUserRepository;
     private final AdopterRepository adopterRepository;
     private final ReportRepository reportRepository;
@@ -28,8 +31,7 @@ public class ReportService {
         this.probationPeriodRepository = probationPeriodRepository;
     }
 
-    public boolean isSendReportCommand(String userMessage, Long chatId) {
-        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
+    public boolean isSendReportCommand(String userMessage) {
         return userMessage.equals("/sendReport");
     }
 
@@ -37,41 +39,84 @@ public class ReportService {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         if (userIsAdopter(user.getUsername())) {
 
-            Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
-            if (adopter.getProbationPeriod() == null) {
-                ProbationPeriod probationPeriod = new ProbationPeriod();
-                probationPeriod.setEnds(LocalDate.now().plusDays(30));
+            Adopter adopter = adopterRepository.findAdopterByUsername(
+                    user.getUsername()).orElseThrow();
+            if (adopter.getProbationPeriods() == null ||
+                    adopter.getAnimals() == null) {
 
-                adopter.setProbationPeriod(probationPeriod);
-                probationPeriod.setAdopter(adopter);
+                MessageSender.sendMessage(chatId, "Что-то пошло не так! За Вами " +
+                        "не закреплён питомец и/или не назначен испытательный срок!" +
+                        "Свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                        "Или запросите обратный звонок - /callback. Приносим свои " +
+                        "извинения.");
+                return;
 
-                probationPeriodRepository.save(probationPeriod);
-                adopterRepository.save(adopter);
+//                List<ProbationPeriod> probPeriodsList = new ArrayList<>();
+//                ProbationPeriod probationPeriod = new ProbationPeriod();
+//                probationPeriod.setEnds(LocalDate.now().plusDays(30));
+//                probationPeriod.setAdopter(adopter);
+//
+//                probPeriodsList.add(probationPeriod);
+//                adopter.setProbationPeriods(probPeriodsList);
+//
+//                probationPeriodRepository.save(probationPeriod);
+//                adopterRepository.save(adopter);
 
-            } else if (reportRepository.existsByProbationPeriodAndDate(
-                    adopter.getProbationPeriod(),
-                    LocalDate.now()
-            )) {
-                MessageSender.sendMessage(chatId, "Вы уже отправили сегодняшний отчёт. " +
-                        "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день. " +
+            }
+
+            List<Animal> chosenSheltersAnimals = new ArrayList<>();
+            for (Animal a : adopter.getAnimals()) {
+                if (a.getShelter().getShelterType() == user.getShelterType()) {
+                    chosenSheltersAnimals.add(a);
+                }
+            }
+            if (chosenSheltersAnimals.isEmpty()) {
+                MessageSender.sendMessage(chatId, "Я вижу, что питомец(ы), которых Вы забрали, - " +
+                        "не из выбранного Вами сейчас приюта. Пожалуйста, нажмите /start, " +
+                        "чтобы выбрать нужный приют. " +
                         "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
                         "Или запросите обратный звонок - /callback");
                 return;
             }
 
-            user.setUserStatus(UserStatus.FILLING_REPORT);
-            shelterUserRepository.save(user);
+//            for (ProbationPeriod p : adopter.getProbationPeriods()) {
+//                if (reportRepository.existsByProbationPeriodAndDate(
+//                        p, LocalDate.now())) {
+//                    MessageSender.sendMessage(chatId, "Вы уже отправили сегодняшний отчёт. " +
+//                            "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день. " +
+//                            "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+//                            "Или запросите обратный звонок - /callback");
+//                    return;
+//                }
+//            }
 
-            MessageSender.sendMessage(chatId, "/sendReport",
+            List<String> buttonNames = new ArrayList<>();
+            for (Animal a : adopter.getAnimals()) {
+                String s = "№" + a.getId() + " " + a.getName();
+                buttonNames.add(s);
+            }
+
+            InlineKeyboardMarkup keyboardMarkup = MenuService.createMenuDoubleButtons(
+                    buttonNames.toArray(new String[0])
+            );
+
+            MessageSender.sendMessage(chatId, "/sendReportFirstStep",
                     "Отлично, приступим!\n" +
-                            "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день каждый день " +
-                            "до 21:00.\n" +
-                            "В качестве отчёта Вам необходимо прислать в первом сообщении " +
-                            "фото питомца, а во втором - как можно более подробное описание:\n" +
+                            "Обращаем Ваше внимание, что отчёт нужно заполнять только " +
+                            "один раз в день каждый день до 21:00.\n" +
+                            "Следуя инструкциям бота, в качестве отчёта Вам необходимо " +
+                            "прислать в первом сообщении фото питомца, а во втором - " +
+                            "как можно более подробное описание:\n" +
                             "- рациона животного,\n" +
                             "- общего самочувствия и привыкания к новому месту,\n" +
-                            "- изменений в поведении: отказ от старых привычек, приобретение новых.\n" +
-                            "Сначала пришлите, пожалуйста, фото.");
+                            "- изменений в поведении: отказ от старых привычек, приобретение " +
+                            "новых.\n" +
+                            "Сначала выберите, пожалуйста, питомца, о котором собираетесь " +
+                            "отправить отчёт.",
+                    keyboardMarkup);
+
+            user.setUserStatus(UserStatus.CHOOSING_PET_FOR_REPORT);
+            shelterUserRepository.save(user);
         } else {
             MessageSender.sendMessage(chatId, "К сожалению, Вы не являетесь усыновителем животного. " +
                     "Пожалуйста, приезжайте в приют с необходимыми документами и выберите питомца. " +
@@ -85,7 +130,11 @@ public class ReportService {
         return adopterRepository.findAdopterByUsername(username).isPresent();
     }
 
-    public void sendReportSecondStep(Long chatId, PhotoSize[] photo) {
+    public void sendReportSecondStep(Long chatId, Long animalId) {
+
+    }
+
+    public void sendReportThirdStep(Long chatId, PhotoSize[] photo) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
@@ -98,12 +147,12 @@ public class ReportService {
         Report report = new Report();
         report.setDate(LocalDate.now());
         report.setPhotoId(photoId);
-        report.setProbationPeriod(adopter.getProbationPeriod());
+        report.setProbationPeriod(adopter.getProbationPeriods());
 
         reportRepository.save(report);
 
         Report savedReport = reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(),
+                adopter.getProbationPeriods(),
                 LocalDate.now()
         ).orElseThrow();
 
@@ -114,7 +163,7 @@ public class ReportService {
                         "Теперь пришлите, пожалуйста, письменный отчёт.");
     }
 
-    public void sendReportThirdStep(Long chatId, String messageText) {
+    public void sendReportFourthStep(Long chatId, String messageText) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
@@ -161,13 +210,13 @@ public class ReportService {
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
         Report report = this.reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(), LocalDate.now()).
+                adopter.getProbationPeriods(), LocalDate.now()).
                 orElse(new Report());
         report.setDate(LocalDate.now());
-        report.setProbationPeriod(adopter.getProbationPeriod());
+        report.setProbationPeriod(adopter.getProbationPeriods());
 
         if (photoSize != null && report.getPhotoId() == null) {
-            sendReportSecondStep(chatId, photoSize);
+            sendReportThirdStep(chatId, photoSize);
             return;
         }
         if (userMessage != null && report.getPhotoId() != null) {
@@ -178,7 +227,7 @@ public class ReportService {
                 shelterUserRepository.save(user);
                 return;
             }
-            sendReportThirdStep(chatId, userMessage);
+            sendReportFourthStep(chatId, userMessage);
             return;
         }
         if (userMessage != null && report.getPhotoId() == null) {
