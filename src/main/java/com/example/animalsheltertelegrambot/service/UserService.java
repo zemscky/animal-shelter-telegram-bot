@@ -70,10 +70,14 @@ public class UserService {
         if (update.callbackQuery() != null) {
 
             MessageSender.sendCallbackQueryResponse(update.callbackQuery().id());
-            CallbackQuery callbackQuery = update.callbackQuery();
             Long chatId2 = update.callbackQuery().message().chat().id();
             String text = update.callbackQuery().data();
-            messageHandler(chatId2, MenuService.getCommandByButton(text));
+            ShelterUser user = userRepository.findById(chatId2).orElseThrow();
+            if (user.getUserStatus() == UserStatus.CHOOSING_PET_FOR_REPORT) {
+                reportService.sendReportSecondStep(chatId2, text);
+            } else {
+                messageHandler(chatId2, MenuService.getCommandByButton(text));
+            }
 
         } else if (update.message().photo() != null && update.message().caption() != null) {
             String fileName = update.message().caption();

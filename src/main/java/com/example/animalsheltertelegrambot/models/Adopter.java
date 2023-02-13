@@ -28,6 +28,8 @@ public class Adopter {
     @JsonBackReference
     private List<ProbationPeriod> probationPeriods;
 
+    private Long currentReportId;
+
     public Adopter() {
     }
 
@@ -45,6 +47,10 @@ public class Adopter {
 
     public String getAddress() {
         return address;
+    }
+
+    public Long getCurrentReportId() {
+        return currentReportId;
     }
 
     public int getAge() {
@@ -89,6 +95,10 @@ public class Adopter {
 
     public void setTelephoneNumber(String telephoneNumber) {
         this.telephoneNumber = telephoneNumber;
+    }
+
+    public void setCurrentReportId(Long currentReportId) {
+        this.currentReportId = currentReportId;
     }
 
     public void setAnimals(List<Animal> animals) {

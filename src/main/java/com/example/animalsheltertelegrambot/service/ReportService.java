@@ -23,12 +23,14 @@ public class ReportService {
     private final AdopterRepository adopterRepository;
     private final ReportRepository reportRepository;
     private final ProbationPeriodRepository probationPeriodRepository;
+    private final AnimalRepository animalRepository;
 
-    public ReportService(ShelterUserRepository shelterUserRepository, AdopterRepository adopterRepository, ReportRepository reportRepository, ProbationPeriodRepository probationPeriodRepository) {
+    public ReportService(ShelterUserRepository shelterUserRepository, AdopterRepository adopterRepository, ReportRepository reportRepository, ProbationPeriodRepository probationPeriodRepository, AnimalRepository animalRepository) {
         this.shelterUserRepository = shelterUserRepository;
         this.adopterRepository = adopterRepository;
         this.reportRepository = reportRepository;
         this.probationPeriodRepository = probationPeriodRepository;
+        this.animalRepository = animalRepository;
     }
 
     public boolean isSendReportCommand(String userMessage) {
@@ -130,8 +132,36 @@ public class ReportService {
         return adopterRepository.findAdopterByUsername(username).isPresent();
     }
 
-    public void sendReportSecondStep(Long chatId, Long animalId) {
+    public void sendReportSecondStep(Long chatId, String callbackData) {
+        if (!callbackData.startsWith("№")) {
 
+        }
+
+        String animalIdString = callbackData.substring(1,
+                callbackData.indexOf(" "));
+        Long animalId = Long.parseLong(animalIdString);
+
+        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+        Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
+
+        ProbationPeriod probPeriod = probationPeriodRepository.findByAnimal_Id(animalId);
+
+        Report report = new Report();
+        report.setDate(LocalDate.now());
+        report.setProbationPeriod(probPeriod);
+        Report savedReport = reportRepository.save(report);
+
+        adopter.setCurrentReportId(savedReport.getId());
+        adopterRepository.save(adopter);
+
+        user.setUserStatus(UserStatus.FILLING_REPORT);
+        shelterUserRepository.save(user);
+
+        Animal animal = animalRepository.findById(animalId).orElseThrow();
+
+        MessageSender.sendMessage(chatId, "/sendReportSecondStep",
+                "Вы выбрали " + animal.getName() +
+                ". Пришлите, пожалуйста, её/его фото.");
     }
 
     public void sendReportThirdStep(Long chatId, PhotoSize[] photo) {
@@ -144,21 +174,14 @@ public class ReportService {
                 .orElse(null)
                 .fileId();
 
-        Report report = new Report();
-        report.setDate(LocalDate.now());
+        Report report = reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
         report.setPhotoId(photoId);
-        report.setProbationPeriod(adopter.getProbationPeriods());
-
-        reportRepository.save(report);
-
-        Report savedReport = reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriods(),
-                LocalDate.now()
-        ).orElseThrow();
+        Report savedReport = reportRepository.save(report);
 
         SendPhoto sendPhoto = new SendPhoto(chatId, savedReport.getPhotoId());
         MessageSender.sendPhoto(sendPhoto);
         MessageSender.sendMessage(chatId,
+                "/sendReportThirdStep",
                 "Спасибо! Фото получено.\n" +
                         "Теперь пришлите, пожалуйста, письменный отчёт.");
     }
@@ -167,34 +190,30 @@ public class ReportService {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
-        Report report = reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(),
-                LocalDate.now()
-        ).orElse(new Report());
-
+        Report report = reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
         report.setEntry(messageText);
-        report.setProbationPeriod(adopter.getProbationPeriod());
-        reportRepository.save(report);
-
-        Report savedReport = reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(),
-                LocalDate.now()
-        ).orElseThrow();
+        Report savedReport = reportRepository.save(report);
 
         SendPhoto sendPhoto = new SendPhoto(chatId, savedReport.getPhotoId());
         SendMessage sendMessage = new SendMessage(chatId, savedReport.getEntry());
 
-        MessageSender.sendMessage(chatId, "Спасибо! Отчёт принят, и выглядит он вот так.");
+        MessageSender.sendMessage(chatId,
+                "/sendReportFourthStep",
+                "Спасибо! Отчёт принят, и выглядит он вот так.");
         MessageSender.sendPhoto(sendPhoto);
         MessageSender.sendMessage(sendMessage);
 
         user.setUserStatus(UserStatus.JUST_USING);
         shelterUserRepository.save(user);
+
+        adopter.setCurrentReportId(null);
+        adopterRepository.save(adopter);
     }
 
     public static boolean isReportStatus(ShelterUser user) {
         UserStatus status = user.getUserStatus();
-        if (status == UserStatus.FILLING_REPORT || status == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
+        if (status == UserStatus.FILLING_REPORT ||
+                status == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
             return true;
         }
         return false;
@@ -209,9 +228,7 @@ public class ReportService {
 
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
-        Report report = this.reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriods(), LocalDate.now()).
-                orElse(new Report());
+        Report report = this.reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
         report.setDate(LocalDate.now());
         report.setProbationPeriod(adopter.getProbationPeriods());
 
