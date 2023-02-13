@@ -120,7 +120,8 @@ public class ReportService {
             user.setUserStatus(UserStatus.CHOOSING_PET_FOR_REPORT);
             shelterUserRepository.save(user);
         } else {
-            MessageSender.sendMessage(chatId, "К сожалению, Вы не являетесь усыновителем животного. " +
+            MessageSender.sendMessage(chatId, "/sendReportFirstStep",
+                    "К сожалению, Вы не являетесь усыновителем животного. " +
                     "Пожалуйста, приезжайте в приют с необходимыми документами и выберите питомца. " +
                     "Волонтёр зарегистрирует Вас в системе и Вы сможете отправлять отчёты. " +
                     "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
@@ -133,15 +134,21 @@ public class ReportService {
     }
 
     public void sendReportSecondStep(Long chatId, String callbackData) {
-        if (!callbackData.startsWith("№")) {
+        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
 
+        if (!callbackData.startsWith("№")) {
+            user.setUserStatus(UserStatus.JUST_USING);
+            MessageSender.sendMessage(chatId, "/sendReportSecondStep",
+                    "Вы не выбрали животное. Чтобы попробовать ещё раз, " +
+                            "пожалуйста, нажмите на кнопку 'Отправить отчёт' " +
+                            "выше или нажмите сюда -> /start");
+            return;
         }
 
         String animalIdString = callbackData.substring(1,
                 callbackData.indexOf(" "));
         Long animalId = Long.parseLong(animalIdString);
 
-        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
         ProbationPeriod probPeriod = probationPeriodRepository.findByAnimal_Id(animalId);
@@ -229,8 +236,6 @@ public class ReportService {
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
         Report report = this.reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
-        report.setDate(LocalDate.now());
-        report.setProbationPeriod(adopter.getProbationPeriods());
 
         if (photoSize != null && report.getPhotoId() == null) {
             sendReportThirdStep(chatId, photoSize);
