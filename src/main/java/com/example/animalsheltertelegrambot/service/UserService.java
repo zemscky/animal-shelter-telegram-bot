@@ -1,91 +1,80 @@
 package com.example.animalsheltertelegrambot.service;
 
-import com.example.animalsheltertelegrambot.repositories.AnimalRepository;
-import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
-import com.example.animalsheltertelegrambot.repositories.InfoMessageRepository;
-import com.pengrad.telegrambot.model.Document;
+import com.example.animalsheltertelegrambot.models.ShelterType;
+import com.example.animalsheltertelegrambot.models.ShelterUser;
+import com.example.animalsheltertelegrambot.models.UserStatus;
+import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
+import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
+
 import java.util.Comparator;
 
 @Service
 public class UserService {
-    public static final String GENERAL_INFO = "Узнать о приюте";
-    public static final String DOG_INFO = "Как забрать собаку";
-    public static final String SEND_REPORT = "Отправить отчёт";
-    public static final String VOLUNTEER = "Позвать волонтёра";
-    public static final String CALLBACK = "Запросить обратный звонок";
-
-    public static final String ABOUT_SHELTER = "Подробнее о приюте";
-    public static final String ADDRESS_SCHEDULE = "Адрес и часы работы";
-    public static final String SAFETY = "Техника безопасности";
-
-    public static final String DOCUMENTS_FOR_ADOPTION = "Необходимые документы";
-    public static final String CYNOLOGIST_ADVICE = "Советы кинолога";
-    public static final String ACTION_FAILURE = "Почему вам могут отказать";
-    private final Logger logger = LoggerFactory.getLogger(UserService.class);
-
-    private final AdopterRepository adopterRepository;
-    private final AnimalRepository animalRepository;
-    private final InfoMessageRepository messageRepository;
-    private final CommandService commandService;
+    private final ShelterUserRepository userRepository;
+    private final InfoMessageService infoMessageService;
+    private final CallbackService callbackService;
+    private final ReportService reportService;
     private final FileService fileService;
 
-    public UserService(AdopterRepository adopterRepository, AnimalRepository animalRepository, InfoMessageRepository messageRepository, CommandService commandService, FileService fileService) {
-        this.adopterRepository = adopterRepository;
-        this.animalRepository = animalRepository;
-        this.messageRepository = messageRepository;
-        this.commandService = commandService;
+    public UserService(ShelterUserRepository shelterUserRepository, InfoMessageService infoMessageService, CallbackService callbackService, ReportService reportService, FileService fileService) {
+        this.userRepository = shelterUserRepository;
+        this.infoMessageService = infoMessageService;
+        this.callbackService = callbackService;
+        this.reportService = reportService;
         this.fileService = fileService;
     }
 
-    /**
-     * Finds an informational message in the database by the command received
-     * from user which serves as a primary key. If user`s message is not
-     * a command, or the command was not found method sends a message
-     * stating that requested information was not found.
-     *
-     * @param update new message from user
-     * @see CommandService#getNotFoundInfoMessage()
-     */
+    public void updateHandler(Update update) {
+        if (update.message() != null) {
 
-    public void sendMessage(Update update) {
-        if (update.message() != null && update.message().text() != null) {
             Long chatId = update.message().chat().id();
-            String text = update.message().text();
-            if (text.equals("/start")) {
-                InlineKeyboardMarkup keyboardMarkup = createMenuButtons();
-                this.commandService.SendPhoto(chatId, "", "images/shelter/shelter_logo.jpg");
-                this.commandService.sendResponseToCommand(chatId, text, keyboardMarkup);
-            }  else {
-                this.commandService.sendResponseToCommand(chatId, text);
+            String userMessage = update.message().text();
+            String userFirstName = update.message().chat().firstName();
+            PhotoSize[] photoSize = update.message().photo();
+
+            if (!this.userRepository.findById(chatId).isPresent()) {
+                sendFirstGreetings(chatId, userFirstName);
+                this.userRepository.save(new ShelterUser(chatId, UserStatus.JUST_USING, ShelterType.DOG_SHELTER, null, userFirstName));
+                messageHandler(chatId, "/start");
+                return;
+             }
+
+            ShelterUser user = userRepository.findById(chatId).orElse(null);
+            if (user == null) {
+                return;
             }
-        } else if (update.callbackQuery() != null) {
-            this.commandService.sendCallbackQueryResponse(update.callbackQuery().id());
-            Long chatId = update.callbackQuery().message().chat().id();
-            String text = update.callbackQuery().data();
-            sendSectionMenu(chatId, text);
-        } else if (update.message().document() != null) {
-            Long chatId = update.message().chat().id();
-            Document document = update.message().document();
-            String fileId = document.fileId();
-            String fileName = document.fileName();
-            long fileSize = document.fileSize();
-            try {
-                fileService.uploadPhotoShelter(chatId, fileId, fileName, fileSize);
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            if (userMessage != null && user.getUserStatus() == UserStatus.JUST_USING) {
+                messageHandler(chatId, userMessage);
+                return;
             }
+
+            if (ReportService.isReportStatus(user)) {
+                reportService.reportHandler(chatId, userMessage, photoSize);
+                return;
+            }
+
+            if (callbackService.isCallbackRequest(userMessage, chatId)) {
+                callbackService.sendCallbackMessage(userMessage, chatId);
+                return;
+            }
+            return;
         }
-        else if (update.message().photo() != null && update.message().caption() != null) {
+
+        if (update.callbackQuery() != null) {
+            MessageSender.sendCallbackQueryResponse(update.callbackQuery().id());
+            CallbackQuery callbackQuery = update.callbackQuery();
+            Long chatId2 = update.callbackQuery().message().chat().id();
+            String text = update.callbackQuery().data();
+            messageHandler(chatId2, MenuService.getCommandByButton(text));
+
+        } else if (update.message().photo() != null && update.message().caption() != null) {
             String fileName = update.message().caption();
             Long chatId = update.message().chat().id();
             PhotoSize[] photos = update.message().photo();
@@ -102,91 +91,53 @@ public class UserService {
         }
     }
 
-    private InlineKeyboardMarkup createMenuButtons() {
-        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-
-        InlineKeyboardButton generalButton = new InlineKeyboardButton(GENERAL_INFO);
-        InlineKeyboardButton dogsButton = new InlineKeyboardButton(DOG_INFO);
-        InlineKeyboardButton sendReportButton = new InlineKeyboardButton(SEND_REPORT);
-        InlineKeyboardButton callbackRequestButton = new InlineKeyboardButton(CALLBACK);
-        InlineKeyboardButton volunteerButton = new InlineKeyboardButton(VOLUNTEER);
-
-        generalButton.callbackData(generalButton.text());
-        dogsButton.callbackData(dogsButton.text());
-        sendReportButton.callbackData(sendReportButton.text());
-        callbackRequestButton.callbackData(callbackRequestButton.text());
-        volunteerButton.callbackData(volunteerButton.text());
-
-        keyboardMarkup.addRow(generalButton);
-        keyboardMarkup.addRow(dogsButton);
-        keyboardMarkup.addRow(sendReportButton);
-        keyboardMarkup.addRow(callbackRequestButton);
-        keyboardMarkup.addRow(volunteerButton);
-
-        return keyboardMarkup;
-    }
-
-    private InlineKeyboardMarkup createMenuButtonsGeneralInfo() {
-        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-
-        InlineKeyboardButton aboutShelterButton = new InlineKeyboardButton(ABOUT_SHELTER);
-        InlineKeyboardButton addressScheduleButton = new InlineKeyboardButton(ADDRESS_SCHEDULE);
-        InlineKeyboardButton safetyButton = new InlineKeyboardButton(SAFETY);
-
-        aboutShelterButton.callbackData(aboutShelterButton.text());
-        addressScheduleButton.callbackData(addressScheduleButton.text());
-        safetyButton.callbackData(safetyButton.text());
-
-        keyboardMarkup.addRow(aboutShelterButton);
-        keyboardMarkup.addRow(addressScheduleButton);
-        keyboardMarkup.addRow(safetyButton);
-
-        return keyboardMarkup;
-    }
-    private InlineKeyboardMarkup createMenuButtonsGeneralDogInfo() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-
-        InlineKeyboardButton documentsForAdoption = new InlineKeyboardButton(DOCUMENTS_FOR_ADOPTION);
-        InlineKeyboardButton cynologistAdvice = new InlineKeyboardButton(CYNOLOGIST_ADVICE);
-        InlineKeyboardButton actionFailure = new InlineKeyboardButton(ACTION_FAILURE);
-
-        documentsForAdoption.callbackData(documentsForAdoption.text());
-        cynologistAdvice.callbackData(cynologistAdvice.text());
-        actionFailure.callbackData(actionFailure.text());
-
-        inlineKeyboardMarkup.addRow(documentsForAdoption);
-        inlineKeyboardMarkup.addRow(cynologistAdvice);
-        inlineKeyboardMarkup.addRow(actionFailure);
-
-        return inlineKeyboardMarkup;
-    }
-
-    public void sendSectionMenu(Long chatId, String text) {
-        switch (text) {
-            case GENERAL_INFO -> {
-                InlineKeyboardMarkup keyboardMarkup = createMenuButtonsGeneralInfo();
-                this.commandService.sendResponseToCommand(chatId, "/description", keyboardMarkup);
-            }
-            case DOG_INFO -> {
-                InlineKeyboardMarkup inlineKeyboardButton = createMenuButtonsGeneralDogInfo();
-                this.commandService.sendResponseToCommand(chatId, "/dogmenu", inlineKeyboardButton);
-            }
-            case SEND_REPORT -> this.commandService.sendResponseToCommand(chatId, "/sendreportmenu");
-            case ADDRESS_SCHEDULE -> {
-                this.commandService.sendResponseToCommand(chatId, "/addressandschedule");
-                this.commandService.SendPhoto(
-                        chatId,
-                        "Схема проезда к нашему приюту",
-                        "images/shelter/shelter_cat_and_dog_location.jpg");
-            }
-            case SAFETY -> this.commandService.sendResponseToCommand(chatId, "/safety");
-            case CALLBACK -> this.commandService.sendResponseToCommand(chatId, "/callback");
-            case VOLUNTEER -> this.commandService.sendResponseToCommand(chatId, "/volunteer");
-            case ABOUT_SHELTER -> this.commandService.sendResponseToCommand(chatId, "/aboutshelter");
-            case DOCUMENTS_FOR_ADOPTION -> this.commandService.sendResponseToCommand(chatId,"/documents");
-            case CYNOLOGIST_ADVICE -> this.commandService.sendResponseToCommand(chatId,"/advice");
-            case ACTION_FAILURE -> this.commandService.sendResponseToCommand(chatId,"/refusal");
-            default -> this.commandService.sendResponseToCommand(chatId, "not found");
+    //determines what the user wants
+    private void messageHandler(Long chatId, String userMessage) {
+        ShelterUser user = userRepository.findById(chatId).orElse(null);
+        if (user == null) {
+            return;
         }
+        if (ReportService.isReportStatus(user)) {
+            reportService.reportHandler(chatId, userMessage, null);
+            return;
+        }
+        if (userMessage.startsWith("/menu")) {
+            switch (userMessage) {
+                case "/menuChoiceShelter" -> MenuService.sendChoiceShelterMenu(chatId);
+                case "/menuMainShelter" -> MenuService.sendMainShelterMenu(chatId);
+                case "/menuAboutShelter" -> MenuService.sendAboutShelterMenu(chatId);
+                case "/menuAnimalGuide" -> MenuService.sendAnimalGuideMenu(chatId);
+                default -> MessageSender.sendMessage(chatId, "incorrect menu request!");
+            }
+        } else if (userMessage.equals("/start")){
+            MessageSender.sendPhoto(chatId, "", "images/shelter/shelter-cat-or-dog.jpg");
+            MenuService.sendChoiceShelterMenu(chatId);
+        } else if (userMessage.equals("/catShelter")) {
+            user.setShelterType(ShelterType.CAT_SHELTER);
+            MessageSender.sendMessage(chatId, "Вы выбрали приют для котов");
+            MenuService.sendMainShelterMenu(chatId);
+            this.userRepository.save(user);
+        } else if (userMessage.equals("/dogShelter")) {
+            MessageSender.sendMessage(chatId, "Вы выбрали приют для собак");
+            user.setShelterType(ShelterType.DOG_SHELTER);
+            MenuService.sendMainShelterMenu(chatId);
+            this.userRepository.save(user);
+        } else if (infoMessageService.isInfo(userMessage, chatId)) {
+            infoMessageService.sendInfoMessage(chatId, userMessage);
+        } else if (callbackService.isCallbackRequest(userMessage, chatId)) {
+            callbackService.sendCallbackMessage(userMessage, chatId);
+        } else if (userMessage.equals("/volunteer")) {
+            MessageSender.sendMessage(chatId, "Ок, позову свободного Волонтера");
+        } else if (reportService.isSendReportCommand(userMessage, chatId)) {
+            reportService.sendReportFirstStep(chatId);
+        } else {
+            MessageSender.sendMessage(chatId, "default", "Не понимаю... попробуй /start");
+        }
+    }
+
+    private void sendFirstGreetings(Long chatId, String userName) {
+        MessageSender.sendPhoto(chatId, "", "images/shelter/shelter_logo.jpg");
+        MessageSender.sendMessage(chatId, "first greeting", "Привет! Я бот приюта для животных.\n" +
+                "Могу рассказать о приюте для животных, а так же о том, что необходимо сделать, чтобы забрать питомца из приюта.");
     }
 }

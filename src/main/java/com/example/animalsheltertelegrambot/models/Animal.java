@@ -20,7 +20,7 @@ public class Animal {
     private String uniqueCharacteristic;
     private String specialNeed;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "adopter_id", nullable = true)
     @JsonManagedReference
     private Adopter adopter;

@@ -27,22 +27,23 @@ public class FileService {
     @Value("${path.to.shelters.folder}")
     private String shelterDir;
 
-    private final Logger logger = LoggerFactory.getLogger(CommandService.class);
+    private final Logger logger = LoggerFactory.getLogger(FileService.class);
 
     private final AnimalRepository animalRepository;
     private final ShelterRepository shelterRepository;
 
     private final LocationMapRepository locationMapRepository;
 
-    private final CommandService commandService;
-
     private TelegramBot telegramBot;
 
-    public FileService(AnimalRepository animalRepository, ShelterRepository shelterRepository, LocationMapRepository locationMapRepository, CommandService commandService, TelegramBot telegramBot) {
+    public FileService(AnimalRepository animalRepository,
+                       ShelterRepository shelterRepository,
+                       LocationMapRepository locationMapRepository,
+                       TelegramBot telegramBot) {
+
         this.animalRepository = animalRepository;
         this.shelterRepository = shelterRepository;
         this.locationMapRepository = locationMapRepository;
-        this.commandService = commandService;
         this.telegramBot = telegramBot;
     }
 
@@ -87,10 +88,10 @@ public class FileService {
 
                 locationMapRepository.save(locationMap);
 
-                commandService.sendMessage(chatId, "Photo uploaded",
+                MessageSender.sendMessage(chatId, "Photo uploaded",
                         "Фото схемы проезда загружено для приюта номер " + shelterNumber, null);
             } else {
-                commandService.sendMessage(chatId, "Photo not uploaded",
+                MessageSender.sendMessage(chatId, "Photo not uploaded",
                         "Фото схемы проезда не загружено. Проверьте:\n" +
                                 "- В сообщении имя фото должно быть в формате:\n" +
                                 "'shelter-map-x' , где x - номер приюта\n" +
@@ -118,7 +119,5 @@ public class FileService {
         } else {
             return "extraDash";
         }
-
     }
-
 }

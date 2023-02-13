@@ -20,6 +20,8 @@ public class Shelter {
     private String telephoneNumber;
     private String timetable;
 
+    private ShelterType shelterType;
+
     @OneToMany(mappedBy = "shelter")
     @JsonManagedReference
     private Set<Animal> animals;
@@ -65,6 +67,14 @@ public class Shelter {
 
     public void setTimetable(String timetable) {
         this.timetable = timetable;
+    }
+
+    public ShelterType getShelterType() {
+        return shelterType;
+    }
+
+    public void setShelterType(ShelterType shelterType) {
+        this.shelterType = shelterType;
     }
 
     public Set<Animal> getAnimals() {
