@@ -35,5 +35,10 @@ ___
   - Liquibase
 ___
 ## Демонстрация работы бота:
-[Смотреть](https://drive.google.com/file/d/15AbNn0T2qWO4Ol4ypMtHuqE63LQRcmSI/view?usp=share_link)
+[Ссылка на обзор бота на Driver Google](https://drive.google.com/file/d/15AbNn0T2qWO4Ol4ypMtHuqE63LQRcmSI/view?usp=share_link)
+
+
+https://user-images.githubusercontent.com/113126626/218460104-fd49c50d-286d-47b3-86c3-23c801a064dc.mp4
+
+
 ___
