@@ -20,11 +20,13 @@ public class Adopter {
     private int age;
     private String telephoneNumber;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "adopter")
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn
     @JsonBackReference
     private List<Animal> animals;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "adopter")
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn         // mappedBy = "adopter"
     @JsonBackReference
     private List<ProbationPeriod> probationPeriods;
 

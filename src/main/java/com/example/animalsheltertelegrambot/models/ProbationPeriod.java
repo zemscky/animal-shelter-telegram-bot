@@ -19,21 +19,37 @@ public class ProbationPeriod {
     private boolean wasSuccessful;
     private String volunteersComment;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     @JsonBackReference
     private Animal animal;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     @JsonBackReference
     private Adopter adopter;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.LAZY)
     @JsonBackReference
     private List<Report> reports;
 
     public ProbationPeriod() {
+    }
+
+    public boolean isWasSuccessful() {
+        return wasSuccessful;
+    }
+
+    public void setWasSuccessful(boolean wasSuccessful) {
+        this.wasSuccessful = wasSuccessful;
+    }
+
+    public String getVolunteersComment() {
+        return volunteersComment;
+    }
+
+    public void setVolunteersComment(String volunteersComment) {
+        this.volunteersComment = volunteersComment;
     }
 
     public Long getId() {

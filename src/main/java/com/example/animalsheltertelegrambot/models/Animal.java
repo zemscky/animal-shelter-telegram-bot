@@ -20,17 +20,17 @@ public class Animal {
     private String uniqueCharacteristic;
     private String specialNeeds;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "adopter_id", nullable = true)
     @JsonManagedReference
     private Adopter adopter;
 
-    @ManyToOne(fetch = FetchType.EAGER)                 //с FetchType.LAZY при получении приюта животного ошибка 500
+    @ManyToOne(fetch = FetchType.LAZY)                 //с FetchType.LAZY при получении приюта животного ошибка 500
     @JoinColumn(name = "shelter_id", nullable = false)
     @JsonBackReference
     private Shelter shelter;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn
     @JsonBackReference
     private ProbationPeriod probationPeriod;
@@ -72,6 +72,22 @@ public class Animal {
 
     public Shelter getShelter() {
         return shelter;
+    }
+
+    public Adopter getAdopter() {
+        return adopter;
+    }
+
+    public void setAdopter(Adopter adopter) {
+        this.adopter = adopter;
+    }
+
+    public ProbationPeriod getProbationPeriod() {
+        return probationPeriod;
+    }
+
+    public void setProbationPeriod(ProbationPeriod probationPeriod) {
+        this.probationPeriod = probationPeriod;
     }
 
     public void setId(long id) {
