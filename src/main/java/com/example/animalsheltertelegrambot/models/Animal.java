@@ -20,13 +20,13 @@ public class Animal {
     private String uniqueCharacteristic;
     private String specialNeeds;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "adopter_id", nullable = true)
-    @JsonManagedReference
+    @ManyToOne(fetch = FetchType.LAZY)     // name = "adopter_id", nullable = true
+    @JoinColumn
+    @JsonBackReference
     private Adopter adopter;
 
     @ManyToOne(fetch = FetchType.LAZY)                 //с FetchType.LAZY при получении приюта животного ошибка 500
-    @JoinColumn(name = "shelter_id", nullable = false)
+    @JoinColumn(nullable = false)                     // (name = "shelter_id", nullable = false)
     @JsonBackReference
     private Shelter shelter;
 

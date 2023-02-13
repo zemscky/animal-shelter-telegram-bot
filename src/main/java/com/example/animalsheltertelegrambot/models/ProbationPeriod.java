@@ -30,6 +30,7 @@ public class ProbationPeriod {
     private Adopter adopter;
 
     @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn
     @JsonBackReference
     private List<Report> reports;
 
