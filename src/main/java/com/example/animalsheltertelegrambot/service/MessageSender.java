@@ -101,9 +101,17 @@ public class MessageSender {
 
     //Метод отправки в чат фото с локального диска по пути, хранящемуся в БД
     public static void sendPhotoDbLinkLocal(Long chatId, String caption, String imagePath) {
+        File locationMap = new File(imagePath);
+        if (locationMap.isFile()) {
             SendPhoto sendPhoto = new SendPhoto(chatId, new File(imagePath));
             sendPhoto.caption(caption);
             telegramBot.execute(sendPhoto);
+        } else {
+            sendMessage(chatId, "К сожалению схема проезда к приюту пока не загружена.\n" +
+                    "Схема проезда к головному офису приютов:");
+            sendPhoto(chatId, "", "images/shelter/shelter_main_location.jpg");
+        }
+
     }
 
     public static void sendAddress(Long chatId, Shelter shelter) {
@@ -114,6 +122,7 @@ public class MessageSender {
                                 "Телефон: " + shelter.getTelephoneNumber() + "\n" +
                                 "Расписание: " + shelter.getTimetable()));
     }
+
     public static void sendPhoto(SendPhoto sendPhoto) {
         telegramBot.execute(sendPhoto);
     }
