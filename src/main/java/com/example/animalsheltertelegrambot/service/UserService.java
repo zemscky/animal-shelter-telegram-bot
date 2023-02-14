@@ -4,7 +4,6 @@ import com.example.animalsheltertelegrambot.models.ShelterType;
 import com.example.animalsheltertelegrambot.models.ShelterUser;
 import com.example.animalsheltertelegrambot.models.UserStatus;
 import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
-import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import org.springframework.stereotype.Service;
@@ -35,12 +34,12 @@ public class UserService {
 
             Long chatId = update.message().chat().id();
             String userMessage = update.message().text();
-            String userFirstName = update.message().chat().firstName();
+            String username = update.message().chat().username();
             PhotoSize[] photoSize = update.message().photo();
 
             if (!this.userRepository.findById(chatId).isPresent()) {
-                sendFirstGreetings(chatId, userFirstName);
-                this.userRepository.save(new ShelterUser(chatId, UserStatus.JUST_USING, ShelterType.DOG_SHELTER, null, userFirstName));
+                sendFirstGreetings(chatId, username);
+                this.userRepository.save(new ShelterUser(chatId, UserStatus.JUST_USING, ShelterType.DOG_SHELTER, null, username));
                 messageHandler(chatId, "/start");
                 return;
              }

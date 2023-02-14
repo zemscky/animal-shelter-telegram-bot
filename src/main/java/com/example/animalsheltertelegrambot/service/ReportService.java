@@ -43,8 +43,8 @@ public class ReportService {
 
             Adopter adopter = adopterRepository.findAdopterByUsername(
                     user.getUsername()).orElseThrow();
-            if (adopter.getProbationPeriods() == null ||
-                    adopter.getAnimals() == null) {
+            if (adopter.getProbationPeriods().isEmpty() ||
+                    adopter.getAnimals().isEmpty()) {
 
                 MessageSender.sendMessage(chatId, "Что-то пошло не так! За Вами " +
                         "не закреплён питомец и/или не назначен испытательный срок!" +

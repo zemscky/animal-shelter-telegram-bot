@@ -1,7 +1,6 @@
 package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -17,21 +16,21 @@ public class Animal {
     private String color;
     private String species;
     private int age;
-    private String uniqueCharacteristic;
+    private String uniqueCharacteristics;
     private String specialNeeds;
 
-    @ManyToOne(fetch = FetchType.LAZY)     // name = "adopter_id", nullable = true
-    @JoinColumn
+    @ManyToOne(fetch = FetchType.EAGER)     // name = "adopter_id", nullable = true
+    @JoinColumn(name = "adopter_id")
     @JsonBackReference
     private Adopter adopter;
 
-    @ManyToOne(fetch = FetchType.LAZY)                 //с FetchType.LAZY при получении приюта животного ошибка 500
-    @JoinColumn(nullable = false)                     // (name = "shelter_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)                 //с FetchType.LAZY при получении приюта животного ошибка 500
+    @JoinColumn(name = "shelter_id", nullable = false)                     // (name = "shelter_id", nullable = false)
     @JsonBackReference
     private Shelter shelter;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "probation_period_id")
     @JsonBackReference
     private ProbationPeriod probationPeriod;
 
@@ -58,8 +57,8 @@ public class Animal {
         return age;
     }
 
-    public String getUniqueCharacteristic() {
-        return uniqueCharacteristic;
+    public String getUniqueCharacteristics() {
+        return uniqueCharacteristics;
     }
 
     public String getSpecialNeeds() {
@@ -110,8 +109,8 @@ public class Animal {
         this.age = age;
     }
 
-    public void setUniqueCharacteristic(String uniqueCharacteristic) {
-        this.uniqueCharacteristic = uniqueCharacteristic;
+    public void setUniqueCharacteristics(String uniqueCharacteristics) {
+        this.uniqueCharacteristics = uniqueCharacteristics;
     }
 
     public void setSpecialNeeds(String specialNeeds) {

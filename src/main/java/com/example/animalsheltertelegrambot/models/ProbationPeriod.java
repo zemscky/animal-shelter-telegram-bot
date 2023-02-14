@@ -19,17 +19,17 @@ public class ProbationPeriod {
     private boolean wasSuccessful;
     private String volunteersComment;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "animal_id", nullable = false)
     @JsonBackReference
     private Animal animal;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "adopter_id", nullable = false)
     @JsonBackReference
     private Adopter adopter;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn
     @JsonBackReference
     private List<Report> reports;

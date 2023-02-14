@@ -13,8 +13,8 @@ public class Report {
     @GeneratedValue
     Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "probation_period_id", nullable = false)
     @JsonBackReference
     private ProbationPeriod probationPeriod;
 
