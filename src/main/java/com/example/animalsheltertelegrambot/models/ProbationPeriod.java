@@ -1,6 +1,7 @@
 package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -21,16 +22,16 @@ public class ProbationPeriod {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "animal_id", nullable = false)
-    @JsonBackReference
+    @JsonManagedReference
     private Animal animal;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "adopter_id", nullable = false)
-    @JsonBackReference
+    @JsonManagedReference
     private Adopter adopter;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn
+    @OneToMany(mappedBy = "probationPeriod", fetch = FetchType.EAGER)
+//    @JoinColumn
     @JsonBackReference
     private List<Report> reports;
 
