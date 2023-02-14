@@ -6,6 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * AdopterRepository is an interface for storing information about the adopter.
+ * Corresponds to the adopter table in PostgreSQL.
+ * Extends {@link JpaRepository}
+ * @see Adopter adoper
+ */
 @Repository
 public interface AdopterRepository extends JpaRepository<Adopter, Long> {
 

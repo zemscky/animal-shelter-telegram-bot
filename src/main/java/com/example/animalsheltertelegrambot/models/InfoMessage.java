@@ -6,9 +6,15 @@ import java.util.Objects;
 
 @Entity
 public class InfoMessage {
-
+    /**
+     * this field contains the tag of the InfoMessage and
+     * is the primary key of the info-message table in PostgreSQL
+     */
     @Id
     private String tag;
+    /**
+     * this field contains text
+     */
     private String text;
 
     public InfoMessage() {

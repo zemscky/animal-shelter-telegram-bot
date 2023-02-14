@@ -10,7 +10,10 @@ import java.util.Objects;
 
 @Entity
 public class ProbationPeriod {
-
+    /**
+     * this field contains the ID of the ProbationPeriod and
+     * is the primary key of the probation_period table in PostgreSQL
+     */
     @Id
     @GeneratedValue
     Long id;

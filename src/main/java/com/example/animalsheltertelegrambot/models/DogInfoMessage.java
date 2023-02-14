@@ -6,9 +6,15 @@ import java.util.Objects;
 
 @Entity
 public class DogInfoMessage implements AnimalInfoMessage{
-
+    /**
+     * this field contains the tag of the DogInfoMessage and
+     * is the primary key of the dog_info_message table in PostgreSQL
+     */
     @Id
     private String tag;
+    /**
+     * this field contains text
+     */
     private String text;
 
     public DogInfoMessage() {

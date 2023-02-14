@@ -1,5 +1,8 @@
 package com.example.animalsheltertelegrambot.models;
 
+/**
+ * this class shows an enumeration of user statuses
+ */
 public enum UserStatus {
     SENDING_PHONE,
     FILLING_REPORT,

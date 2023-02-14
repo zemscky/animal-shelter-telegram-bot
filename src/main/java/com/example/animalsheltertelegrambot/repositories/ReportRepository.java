@@ -9,6 +9,12 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * ReportRepository is an interface for storing information about the adopter report
+ * Corresponds to the report table in PostgreSQL.
+ * Extends {@link JpaRepository}
+ * @see Report report
+ */
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 

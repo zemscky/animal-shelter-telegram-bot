@@ -5,24 +5,50 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import javax.persistence.*;
 import java.util.Objects;
 
+/**
+ * The adopter class contains information about the data of the adopter, which are entered into the database
+ */
 @Entity
 public class Adopter {
-
+    /**
+     * this field contains the ID of the Adopter and is the primary key of the adaptation table in PostgreSQL
+     */
     @Id
     @GeneratedValue
     private long id;
-
+    /**
+     * this field contains the ID of the adopter's chat to which messages about the adoption of the animal are sent
+     */
     private Long chatId;
+    /**
+     * this field contains the nickname of the adopter required for reports
+     */
     private String username;
+    /**
+     * this field contains the name of the adopter, which he indicated during registration
+     */
     private String name;
+    /**
+     * this field contains the address of the adopter, which he indicated during registration
+     */
     private String address;
+    /**
+     * this field contains the age of the adopter, which he indicated during registration
+     */
     private int age;
+    /**
+     * this field contains the telephone number of the adopter, which he indicated during registration
+     */
     private String telephoneNumber;
-
+    /**
+     * the animal field in the adopter class contains the relation One-To-One
+     */
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
     @JsonBackReference
     private Animal animal;
-
+    /**
+     * the probation field in the adopter class contains a One-To-One relationship and is required to add a probation for the adopter
+     */
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
     @JoinColumn
     @JsonBackReference

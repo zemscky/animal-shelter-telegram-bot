@@ -4,6 +4,9 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import org.springframework.stereotype.Service;
 
+/**
+ * this class contains the implementation of the menu buttons in the telegram bot
+ */
 @Service
 public class MenuService {
     public static final String CAT_SHELTER = "Приют для кошек";

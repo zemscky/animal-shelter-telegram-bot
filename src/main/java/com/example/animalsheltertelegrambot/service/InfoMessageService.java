@@ -21,6 +21,11 @@ public class InfoMessageService {
         this.locationMapRepository = locationMapRepository;
     }
 
+    /**
+     * this method contains sending a message to the user about the location of the shelter
+     * @param chatId
+     * @param tag
+     */
     public void sendInfoMessage(Long chatId, String tag) {
         AnimalInfoMessage infoMessage = (AnimalInfoMessage) getRepository(chatId).findById(tag).orElseThrow(RuntimeException::new);
         MessageSender.sendMessage(chatId, tag, infoMessage.getText());

@@ -22,6 +22,12 @@ public class CallbackService {
         return m.matches();
     }
 
+    /**
+     *
+     this method contains sending a callback to the user based on his status
+     * @param userMessage
+     * @param chatId
+     */
     public void sendCallbackMessage(String userMessage, Long chatId) {
         ShelterUser user = this.shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
         if (user.getUserStatus().equals(UserStatus.SENDING_PHONE)) {
@@ -66,6 +72,12 @@ public class CallbackService {
         shelterUserRepository.save(user);
     }
 
+    /**
+     * this method contains assigning a telegram bot status to the user
+     * @param userMessage
+     * @param chatId
+     * @return
+     */
     public boolean isCallbackRequest(String userMessage, Long chatId) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
         return userMessage.equals("/callback")

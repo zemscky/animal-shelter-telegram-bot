@@ -5,10 +5,19 @@ import java.util.Objects;
 
 @Entity
 public class LocationMap {
+    /**
+     * this field contains the number of the LocationMap and
+     * is the primary key of the location_map table in PostgreSQL
+     */
     @Id
     private String number;
-
+    /**
+     * this field contains the path to the file
+     */
     private String filePath;
+    /**
+     * this field contains the size of the file
+     */
     private long fileSize;
 
     @OneToOne

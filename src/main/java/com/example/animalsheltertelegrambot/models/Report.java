@@ -8,18 +8,30 @@ import java.util.Objects;
 
 @Entity
 public class Report {
-
+    /**
+     * this field contains the ID of the Report and is the primary key of the report table in PostgreSQL
+     */
     @Id
     @GeneratedValue
     Long id;
-
+    /**
+     * this field stores the probationary period during which the adopter must send a report about the animal
+     */
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false)
     @JsonBackReference
     private ProbationPeriod probationPeriod;
-
+    /**
+     * this field contains the date of the report sent by the adopter
+     */
     private LocalDate date;
+    /**
+     * this field stores the report record of the adopter
+     */
     private String entry;
+    /**
+     * this field stores the id of the animal's photo
+     */
     private String photoId;
 
     public Report() {

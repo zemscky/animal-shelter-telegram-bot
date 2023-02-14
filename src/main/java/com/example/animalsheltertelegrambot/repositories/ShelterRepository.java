@@ -8,6 +8,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * ProbationPeriodRepository is an interface for storing information about an animal shelter
+ * Corresponds to the shelter table in PostgreSQL.
+ * Extends {@link JpaRepository}
+ * @see Shelter shelter
+ */
 @Repository
 public interface ShelterRepository extends JpaRepository<Shelter, String> {
 
