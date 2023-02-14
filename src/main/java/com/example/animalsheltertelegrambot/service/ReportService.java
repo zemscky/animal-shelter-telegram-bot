@@ -81,6 +81,20 @@ public class ReportService {
                 return;
             }
 
+            List<Animal> unexpired = new ArrayList<>();
+            for (Animal a : chosenSheltersAnimals) {
+                if (!a.getProbationPeriod().getEnds().isBefore(LocalDate.now())) {
+                    unexpired.add(a);
+                }
+            }
+            if (unexpired.isEmpty()) {
+                MessageSender.sendMessage(chatId, "Ваши испытательный(е) срок(и) " +
+                        "окончены! Вам больше не нужно отправлять отчёты. " +
+                        "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                        "Или запросите обратный звонок - /callback");
+                return;
+            }
+
 //            for (ProbationPeriod p : adopter.getProbationPeriods()) {
 //                if (reportRepository.existsByProbationPeriodAndDate(
 //                        p, LocalDate.now())) {
@@ -93,7 +107,7 @@ public class ReportService {
 //            }
 
             List<String> buttonNames = new ArrayList<>();
-            for (Animal a : adopter.getAnimals()) {
+            for (Animal a : unexpired) {
                 String s = "№" + a.getId() + " " + a.getName();
                 buttonNames.add(s);
             }
@@ -137,11 +151,7 @@ public class ReportService {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
 
         if (!callbackData.startsWith("№")) {
-            user.setUserStatus(UserStatus.JUST_USING);
-            MessageSender.sendMessage(chatId, "/sendReportSecondStep",
-                    "Вы не выбрали животное. Чтобы попробовать ещё раз, " +
-                            "пожалуйста, нажмите на кнопку 'Отправить отчёт' " +
-                            "выше или нажмите сюда -> /start");
+            resetUsersShelterTypeAndCancel(chatId, user);
             return;
         }
 
@@ -150,25 +160,54 @@ public class ReportService {
         Long animalId = Long.parseLong(animalIdString);
 
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
-
         ProbationPeriod probPeriod = probationPeriodRepository.findByAnimal_Id(animalId);
 
-        Report report = new Report();
-        report.setDate(LocalDate.now());
-        report.setProbationPeriod(probPeriod);
-        Report savedReport = reportRepository.save(report);
+        Report report;
+        if (reportRepository.existsByProbationPeriodAndDate(
+                probPeriod, LocalDate.now())) {
+            report = reportRepository.findReportByProbationPeriodAndDate(
+                    probPeriod, LocalDate.now()).orElseThrow();
+            if (report.getEntry() != null && report.getPhotoId() != null) {
+                MessageSender.sendMessage(chatId, "Вы уже отправили сегодняшний " +
+                        "отчёт по выбранному питомцу. " +
+                        "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день. " +
+                        "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                        "Или запросите обратный звонок - /callback");
+                user.setUserStatus(UserStatus.JUST_USING);
+                shelterUserRepository.save(user);
+                return;
+            }
+            if (report.getPhotoId() != null && report.getEntry() == null) {
+                MessageSender.sendMessage(chatId, "Фото для данного " +
+                        "отчёта уже было получено.\n" +
+                        "Напишите, пожалуйста, письменный отчёт. " +
+                        "В нём должно быть как можно более подробное описание:\n" +
+                        "- рациона животного,\n" +
+                        "- общего самочувствия и привыкания к новому месту,\n" +
+                        "- изменений в поведении: отказ от старых привычек, приобретение " +
+                        "новых.");
+                user.setUserStatus(UserStatus.FILLING_REPORT);
+                shelterUserRepository.save(user);
+                return;
+            }
+        } else {
+            report = new Report();
+            report.setDate(LocalDate.now());
+            report.setProbationPeriod(probPeriod);
+        }
+            Report savedReport = reportRepository.save(report);
 
-        adopter.setCurrentReportId(savedReport.getId());
-        adopterRepository.save(adopter);
+            adopter.setCurrentReportId(savedReport.getId());
+            adopterRepository.save(adopter);
 
-        user.setUserStatus(UserStatus.FILLING_REPORT);
-        shelterUserRepository.save(user);
+            user.setUserStatus(UserStatus.FILLING_REPORT);
+            shelterUserRepository.save(user);
 
-        Animal animal = animalRepository.findById(animalId).orElseThrow();
+            Animal animal = animalRepository.findById(animalId).orElseThrow();
 
-        MessageSender.sendMessage(chatId, "/sendReportSecondStep",
-                "Вы выбрали " + animal.getName() +
-                ". Пришлите, пожалуйста, её/его фото.");
+            MessageSender.sendMessage(chatId, "/sendReportSecondStep",
+                    "Вы выбрали " + animal.getName() +
+                            ". Пришлите, пожалуйста, её/его фото.");
     }
 
     public void sendReportThirdStep(Long chatId, PhotoSize[] photo) {
@@ -217,10 +256,21 @@ public class ReportService {
         adopterRepository.save(adopter);
     }
 
+    public void resetUsersShelterTypeAndCancel(Long chatId, ShelterUser user) {
+        user.setUserStatus(UserStatus.JUST_USING);
+        shelterUserRepository.save(user);
+        MessageSender.sendMessage(chatId, "/sendReportSecondStep",
+                "Вы не выбрали животное. Чтобы попробовать ещё раз, " +
+                        "пожалуйста, начните сначала, нажав на кнопку " +
+                        "'Отправить отчёт' " +
+                        "выше или сюда -> /start");
+    }
+
     public static boolean isReportStatus(ShelterUser user) {
         UserStatus status = user.getUserStatus();
         if (status == UserStatus.FILLING_REPORT ||
-                status == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
+                status == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN ||
+                status == UserStatus.CHOOSING_PET_FOR_REPORT) {
             return true;
         }
         return false;
@@ -228,13 +278,17 @@ public class ReportService {
 
     public void reportHandler(Long chatId, String userMessage, PhotoSize[] photoSize) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+
         if (user.getUserStatus() == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
             sendTryAgainMessage(chatId, userMessage, user);
             return;
         }
+        if (user.getUserStatus() == UserStatus.CHOOSING_PET_FOR_REPORT) {
+            resetUsersShelterTypeAndCancel(chatId, user);
+            return;
+        }
 
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
-
         Report report = this.reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
 
         if (photoSize != null && report.getPhotoId() == null) {
@@ -254,6 +308,16 @@ public class ReportService {
         }
         if (userMessage != null && report.getPhotoId() == null) {
             MessageSender.sendMessage(chatId, "Не правильный порядок действий" ,"Не правильный порядок действий. Нужно сперва загрузить фотографию. Попробуете еще раз?",
+                    MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
+
+            user.setUserStatus(UserStatus.REPORT_YOU_WANNA_TRY_AGAIN);
+            shelterUserRepository.save(user);
+        }
+        if (photoSize != null && report.getPhotoId() != null) {
+            MessageSender.sendMessage(chatId, "Фото уже есть",
+                    "Фото для данного отчёта уже было получено. Необходимо " +
+                            "отправить письменный отчёт. Попробуете отправить письменный " +
+                            "отчёт еще раз?",
                     MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
 
             user.setUserStatus(UserStatus.REPORT_YOU_WANNA_TRY_AGAIN);
