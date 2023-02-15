@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>animal-shelter-telegram-bot</artifactId>
+    <artifactId>animals-shelter-telegram-bot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>animal-shelter-telegram-bot</name>
-    <description>animal-shelter-telegram-bot</description>
+    <name>animals-shelter-telegram-bot</name>
+    <description>animals-shelter-telegram-bot</description>
     <properties>
         <java.version>17</java.version>
     </properties>
@@ -48,6 +48,13 @@
             <artifactId>liquibase-core</artifactId>
             <version>4.8.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.6.13</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.json</groupId>

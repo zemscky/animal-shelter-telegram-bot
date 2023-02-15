@@ -17,18 +17,23 @@ public class Animal {
     private String color;
     private String species;
     private int age;
-    private String uniqueCharacteristic;
-    private String specialNeed;
+    private String uniqueCharacteristics;
+    private String specialNeeds;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "adopter_id", nullable = true)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "adopter_id")
     @JsonManagedReference
     private Adopter adopter;
 
     @ManyToOne(fetch = FetchType.EAGER)                 //с FetchType.LAZY при получении приюта животного ошибка 500
-    @JoinColumn(name = "shelter_id", nullable = false)
-    @JsonBackReference
+    @JoinColumn(name = "shelter_id", nullable = false)                     // (name = "shelter_id", nullable = false)
+    @JsonManagedReference
     private Shelter shelter;
+
+    @OneToOne(fetch = FetchType.EAGER)    // mappedBy = "animal",
+//    @JoinColumn(name = "probation_period_id")
+    @JsonBackReference
+    private ProbationPeriod probationPeriod;
 
     public Animal() {
     }
@@ -53,12 +58,12 @@ public class Animal {
         return age;
     }
 
-    public String getUniqueCharacteristic() {
-        return uniqueCharacteristic;
+    public String getUniqueCharacteristics() {
+        return uniqueCharacteristics;
     }
 
-    public String getSpecialNeed() {
-        return specialNeed;
+    public String getSpecialNeeds() {
+        return specialNeeds;
     }
 
     public Adopter getClient() {
@@ -67,6 +72,22 @@ public class Animal {
 
     public Shelter getShelter() {
         return shelter;
+    }
+
+    public Adopter getAdopter() {
+        return adopter;
+    }
+
+    public void setAdopter(Adopter adopter) {
+        this.adopter = adopter;
+    }
+
+    public ProbationPeriod getProbationPeriod() {
+        return probationPeriod;
+    }
+
+    public void setProbationPeriod(ProbationPeriod probationPeriod) {
+        this.probationPeriod = probationPeriod;
     }
 
     public void setId(long id) {
@@ -89,12 +110,12 @@ public class Animal {
         this.age = age;
     }
 
-    public void setUniqueCharacteristic(String uniqueCharacteristic) {
-        this.uniqueCharacteristic = uniqueCharacteristic;
+    public void setUniqueCharacteristics(String uniqueCharacteristics) {
+        this.uniqueCharacteristics = uniqueCharacteristics;
     }
 
-    public void setSpecialNeed(String specialNeed) {
-        this.specialNeed = specialNeed;
+    public void setSpecialNeeds(String specialNeeds) {
+        this.specialNeeds = specialNeeds;
     }
 
     public void setClient(Adopter adopter) {

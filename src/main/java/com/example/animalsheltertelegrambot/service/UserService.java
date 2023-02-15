@@ -4,7 +4,6 @@ import com.example.animalsheltertelegrambot.models.ShelterType;
 import com.example.animalsheltertelegrambot.models.ShelterUser;
 import com.example.animalsheltertelegrambot.models.UserStatus;
 import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
-import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import org.springframework.stereotype.Service;
@@ -35,12 +34,12 @@ public class UserService {
 
             Long chatId = update.message().chat().id();
             String userMessage = update.message().text();
-            String userFirstName = update.message().chat().firstName();
+            String username = update.message().chat().username();
             PhotoSize[] photoSize = update.message().photo();
 
             if (!this.userRepository.findById(chatId).isPresent()) {
-                sendFirstGreetings(chatId, userFirstName);
-                this.userRepository.save(new ShelterUser(chatId, UserStatus.JUST_USING, ShelterType.DOG_SHELTER, null, userFirstName));
+                sendFirstGreetings(chatId, username);
+                this.userRepository.save(new ShelterUser(chatId, UserStatus.JUST_USING, ShelterType.DOG_SHELTER, null, username));
                 messageHandler(chatId, "/start");
                 return;
              }
@@ -68,11 +67,16 @@ public class UserService {
         }
 
         if (update.callbackQuery() != null) {
+
             MessageSender.sendCallbackQueryResponse(update.callbackQuery().id());
-            CallbackQuery callbackQuery = update.callbackQuery();
             Long chatId2 = update.callbackQuery().message().chat().id();
             String text = update.callbackQuery().data();
-            messageHandler(chatId2, MenuService.getCommandByButton(text));
+            ShelterUser user = userRepository.findById(chatId2).orElseThrow();
+            if (user.getUserStatus() == UserStatus.CHOOSING_PET_FOR_REPORT) {
+                reportService.sendReportSecondStep(chatId2, text);
+            } else {
+                messageHandler(chatId2, MenuService.getCommandByButton(text));
+            }
 
         } else if (update.message().photo() != null && update.message().caption() != null) {
             String fileName = update.message().caption();
@@ -128,7 +132,7 @@ public class UserService {
             callbackService.sendCallbackMessage(userMessage, chatId);
         } else if (userMessage.equals("/volunteer")) {
             MessageSender.sendMessage(chatId, "Ок, позову свободного Волонтера");
-        } else if (reportService.isSendReportCommand(userMessage, chatId)) {
+        } else if (reportService.isSendReportCommand(userMessage)) {
             reportService.sendReportFirstStep(chatId);
         } else {
             MessageSender.sendMessage(chatId, "default", "Не понимаю... попробуй /start");

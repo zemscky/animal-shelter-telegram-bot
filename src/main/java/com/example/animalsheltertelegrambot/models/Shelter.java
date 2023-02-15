@@ -1,11 +1,9 @@
 package com.example.animalsheltertelegrambot.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -22,8 +20,9 @@ public class Shelter {
 
     private ShelterType shelterType;
 
-    @OneToMany(mappedBy = "shelter")
-    @JsonManagedReference
+    @OneToMany(mappedBy = "shelter", fetch = FetchType.EAGER)
+//    @JoinColumn
+    @JsonBackReference
     private Set<Animal> animals;
 
     public Shelter() {
