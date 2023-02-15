@@ -9,9 +9,11 @@ import com.pengrad.telegrambot.request.SendPhoto;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.*;
 
+@Transactional
 @Service
 public class ReportService {
 

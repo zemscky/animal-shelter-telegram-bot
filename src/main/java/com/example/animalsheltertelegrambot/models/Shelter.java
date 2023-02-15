@@ -20,7 +20,7 @@ public class Shelter {
 
     private ShelterType shelterType;
 
-    @OneToMany(mappedBy = "shelter", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "shelter")
 //    @JoinColumn
     @JsonBackReference
     private Set<Animal> animals;

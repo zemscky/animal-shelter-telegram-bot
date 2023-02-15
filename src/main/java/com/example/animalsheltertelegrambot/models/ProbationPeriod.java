@@ -12,7 +12,7 @@ import java.util.Objects;
 public class ProbationPeriod {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     private LocalDate ends;
@@ -20,17 +20,17 @@ public class ProbationPeriod {
     private String volunteersComment;
     private boolean needToSendVolunteersComment;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne
     @JoinColumn(name = "animal_id", nullable = false)
     @JsonManagedReference
     private Animal animal;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "adopter_id", nullable = false)
     @JsonManagedReference
     private Adopter adopter;
 
-    @OneToMany(mappedBy = "probationPeriod", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "probationPeriod", fetch = FetchType.LAZY)
 //    @JoinColumn
     @JsonBackReference
     private List<Report> reports;
