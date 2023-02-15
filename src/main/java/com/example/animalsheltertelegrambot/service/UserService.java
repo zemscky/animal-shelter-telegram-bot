@@ -20,13 +20,15 @@ public class UserService {
     private final CallbackService callbackService;
     private final ReportService reportService;
     private final FileService fileService;
+    private final AdminService adminService;
 
-    public UserService(ShelterUserRepository shelterUserRepository, InfoMessageService infoMessageService, CallbackService callbackService, ReportService reportService, FileService fileService) {
+    public UserService(ShelterUserRepository shelterUserRepository, InfoMessageService infoMessageService, CallbackService callbackService, ReportService reportService, FileService fileService, AdminService adminService) {
         this.userRepository = shelterUserRepository;
         this.infoMessageService = infoMessageService;
         this.callbackService = callbackService;
         this.reportService = reportService;
         this.fileService = fileService;
+        this.adminService = adminService;
     }
 
     public void updateHandler(Update update) {
@@ -54,6 +56,11 @@ public class UserService {
                 return;
             }
 
+            if (userMessage != null && user.getUserStatus() == UserStatus.SENDING_ADOPTER_USERNAME) {
+                adminService.addUsernameToAdopterDatabase(chatId, userMessage);
+                return;
+            }
+
             if (ReportService.isReportStatus(user)) {
                 reportService.reportHandler(chatId, userMessage, photoSize);
                 return;
@@ -64,6 +71,7 @@ public class UserService {
                 return;
             }
             return;
+
         }
 
         if (update.callbackQuery() != null) {
@@ -106,7 +114,17 @@ public class UserService {
             return;
         }
         if (userMessage.equals("/admin")) {
-            AdminService.sendAdminMenu(chatId);
+            adminService.sendAdminMenu(chatId);
+            return;
+        }
+
+        if (userMessage.equals("update road map")) {
+            adminService.sendRoadMapUpdateInstruction(chatId);
+            return;
+        }
+
+        if (userMessage.equals("add adopter username")) {
+            adminService.sendAdopterUsernameInputMessage(chatId);
             return;
         }
 

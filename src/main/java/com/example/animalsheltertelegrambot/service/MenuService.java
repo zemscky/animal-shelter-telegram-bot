@@ -105,7 +105,7 @@ public class MenuService {
             case ABOUT_SHELTER -> command = "/aboutshelter";
             case ADDRESS_SCHEDULE -> command = "/addressandschedule";
             case PASS_REGISTRATION -> command = "/passRegistration";
-            default -> command = "not found";
+            default -> command = text;
         }
         return command;
     }
