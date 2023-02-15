@@ -1,10 +1,10 @@
 package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,25 +12,46 @@ import java.util.Objects;
 public class ProbationPeriod {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     private LocalDate ends;
+    private boolean wasSuccessful;
+    private String volunteersComment;
+    private boolean needToSendVolunteersComment;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JsonBackReference
+    @OneToOne
+    @JoinColumn(name = "animal_id", nullable = false)
+    @JsonManagedReference
     private Animal animal;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false)
-    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "adopter_id", nullable = false)
+    @JsonManagedReference
     private Adopter adopter;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "probationPeriod", fetch = FetchType.LAZY)
+//    @JoinColumn
     @JsonBackReference
-    private List<Report> reports = new ArrayList<>();
+    private List<Report> reports;
 
     public ProbationPeriod() {
+    }
+
+    public boolean isWasSuccessful() {
+        return wasSuccessful;
+    }
+
+    public void setWasSuccessful(boolean wasSuccessful) {
+        this.wasSuccessful = wasSuccessful;
+    }
+
+    public String getVolunteersComment() {
+        return volunteersComment;
+    }
+
+    public void setVolunteersComment(String volunteersComment) {
+        this.volunteersComment = volunteersComment;
     }
 
     public Long getId() {
@@ -53,6 +74,10 @@ public class ProbationPeriod {
         return reports;
     }
 
+    public boolean isNeedToSendVolunteersComment() {
+        return needToSendVolunteersComment;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -71,6 +96,10 @@ public class ProbationPeriod {
 
     public void setReports(List<Report> reports) {
         this.reports = reports;
+    }
+
+    public void setNeedToSendVolunteersComment(boolean needToSendVolunteersComment) {
+        this.needToSendVolunteersComment = needToSendVolunteersComment;
     }
 
     @Override

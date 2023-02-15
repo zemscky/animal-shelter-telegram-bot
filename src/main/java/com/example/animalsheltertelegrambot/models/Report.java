@@ -1,6 +1,7 @@
 package com.example.animalsheltertelegrambot.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -10,12 +11,12 @@ import java.util.Objects;
 public class Report {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false)
-    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "probation_period_id", nullable = false)
+    @JsonManagedReference
     private ProbationPeriod probationPeriod;
 
     private LocalDate date;
