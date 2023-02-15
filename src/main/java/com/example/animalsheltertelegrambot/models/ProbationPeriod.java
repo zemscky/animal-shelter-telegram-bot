@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,6 +18,7 @@ public class ProbationPeriod {
     private LocalDate ends;
     private boolean wasSuccessful;
     private String volunteersComment;
+    private boolean needToSendVolunteersComment;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "animal_id", nullable = false)
@@ -74,6 +74,10 @@ public class ProbationPeriod {
         return reports;
     }
 
+    public boolean isNeedToSendVolunteersComment() {
+        return needToSendVolunteersComment;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -92,6 +96,10 @@ public class ProbationPeriod {
 
     public void setReports(List<Report> reports) {
         this.reports = reports;
+    }
+
+    public void setNeedToSendVolunteersComment(boolean needToSendVolunteersComment) {
+        this.needToSendVolunteersComment = needToSendVolunteersComment;
     }
 
     @Override

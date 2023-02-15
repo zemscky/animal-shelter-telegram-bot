@@ -6,13 +6,11 @@ import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ReportService {
@@ -43,6 +41,7 @@ public class ReportService {
 
             Adopter adopter = adopterRepository.findAdopterByUsername(
                     user.getUsername()).orElseThrow();
+
             if (adopter.getProbationPeriods().isEmpty() ||
                     adopter.getAnimals().isEmpty()) {
 
@@ -52,18 +51,11 @@ public class ReportService {
                         "Или запросите обратный звонок - /callback. Приносим свои " +
                         "извинения.");
                 return;
+            }
 
-//                List<ProbationPeriod> probPeriodsList = new ArrayList<>();
-//                ProbationPeriod probationPeriod = new ProbationPeriod();
-//                probationPeriod.setEnds(LocalDate.now().plusDays(30));
-//                probationPeriod.setAdopter(adopter);
-//
-//                probPeriodsList.add(probationPeriod);
-//                adopter.setProbationPeriods(probPeriodsList);
-//
-//                probationPeriodRepository.save(probationPeriod);
-//                adopterRepository.save(adopter);
-
+            if (adopter.getChatId() == null || !adopter.getChatId().equals(chatId)) {
+                adopter.setChatId(chatId);
+                adopterRepository.save(adopter);
             }
 
             List<Animal> chosenSheltersAnimals = new ArrayList<>();
@@ -335,7 +327,57 @@ public class ReportService {
             shelterUserRepository.save(user);
             MessageSender.sendMessage(chatId, "Нет? Тогда вернёмся к этому вопросу позже. Если нужно вернуться в начальное меню, используйте /start");
         }
-
     }
 
+    @Scheduled(cron = "0 00 10 * * *") // каждый день в 10 утра
+    public void sendDailyReportReminder() {
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+            if (adopter.getProbationPeriods().stream().allMatch(
+                    probationPeriod -> probationPeriod.getEnds().isBefore(
+                            LocalDate.now()
+                    )
+            )) {
+                allAdopters.remove(adopter);
+            }
+        }
+        allAdopters.forEach(adopter -> {
+            MessageSender.sendMessage(adopter.getChatId(),
+                    "/dailyReportNotification",
+                    "Доброе утро! Напоминаем, что до 21:00 необходимо отправить " +
+                            "отчёт(ы) по питомцу(ам). Спасибо!");
+        });
+    }
+
+//    @Scheduled(cron = "0 00 10 * * *")
+    public void sendReminderIfNoReports() {
+        // 1) Если два дня нет отчётов, то напоминание от бота
+        //  и/или
+        // 2) если у Adopter есть ProbationPeriod-ы, у которых поле
+        // boolean needToSendVolunteersComment равен true, то надо отправить
+        // сообщение волонтёра (String volunteersComment)
+        // ??можно соединить, можно разделить на 2 метода??
+        //
+        //Так как по ТЗ замечание для усыновителя пишет волонтёр, то
+        // содержимое сообщения можно вручную вбить в бд чисто для теста метода
+    }
+
+    //    @Scheduled(cron = "0 00 10 * * *")
+    public void sendCongratulations() {
+        // Если у Adopter есть успешно законченный ProbationPeriod, то надо
+        // отправить поздравление
+    }
+
+    //    @Scheduled(cron = "0 00 10 * * *")
+    public void sendRefusal() {
+        // Если Adopter не прошёл ProbationPeriod, то надо
+        // отправить уведомление и инфу, что делать дальше
+    }
+
+    //    @Scheduled(cron = "0 00 10 * * *")
+    public void sendProlongationNotification() {
+        // Если у Adopter продлён ProbationPeriod, то надо
+        // отправить уведомление об этом
+        // ?? может быть, добавить ещё поле boolean в ProbationPeriod ??
+    }
 }
