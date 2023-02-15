@@ -10,7 +10,7 @@ import java.util.Objects;
 public class Adopter {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private Long chatId;
@@ -20,12 +20,12 @@ public class Adopter {
     private int age;
     private String telephoneNumber;
 
-    @OneToMany(mappedBy = "adopter", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "adopter", fetch = FetchType.LAZY)
 //    @JoinColumn
     @JsonBackReference
     private List<Animal> animals;
 
-    @OneToMany(mappedBy = "adopter", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "adopter", fetch = FetchType.LAZY)
 //    @JoinColumn
     @JsonBackReference
     private List<ProbationPeriod> probationPeriods;
