@@ -59,7 +59,7 @@ public class UserService {
                 return;
             }
 
-            if (callbackService.isCallbackRequest(userMessage, chatId)) {
+            if (userMessage != null && callbackService.isCallbackRequest(userMessage, chatId)) {
                 callbackService.sendCallbackMessage(userMessage, chatId);
                 return;
             }
@@ -105,6 +105,11 @@ public class UserService {
             reportService.reportHandler(chatId, userMessage, null);
             return;
         }
+        if (userMessage.equals("/admin")) {
+            AdminService.sendAdminMenu(chatId);
+            return;
+        }
+
         if (userMessage.startsWith("/menu")) {
             switch (userMessage) {
                 case "/menuChoiceShelter" -> MenuService.sendChoiceShelterMenu(chatId);
