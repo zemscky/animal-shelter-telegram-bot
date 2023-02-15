@@ -64,7 +64,6 @@ public class UserService {
                 callbackService.sendCallbackMessage(userMessage, chatId);
                 return;
             }
-            return;
         }
 
         if (update.callbackQuery() != null) {

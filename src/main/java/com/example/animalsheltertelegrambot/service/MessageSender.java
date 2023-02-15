@@ -111,7 +111,6 @@ public class MessageSender {
                     "Схема проезда к головному офису приютов:");
             sendPhoto(chatId, "", "images/shelter/shelter_main_location.jpg");
         }
-
     }
 
     public static void sendAddress(Long chatId, Shelter shelter) {
