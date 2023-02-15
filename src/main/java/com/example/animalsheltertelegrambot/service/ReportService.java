@@ -89,17 +89,6 @@ public class ReportService {
                 return;
             }
 
-//            for (ProbationPeriod p : adopter.getProbationPeriods()) {
-//                if (reportRepository.existsByProbationPeriodAndDate(
-//                        p, LocalDate.now())) {
-//                    MessageSender.sendMessage(chatId, "Вы уже отправили сегодняшний отчёт. " +
-//                            "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день. " +
-//                            "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
-//                            "Или запросите обратный звонок - /callback");
-//                    return;
-//                }
-//            }
-
             List<String> buttonNames = new ArrayList<>();
             for (Animal a : unexpired) {
                 String s = "№" + a.getId() + " " + a.getName();
