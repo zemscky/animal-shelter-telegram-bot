@@ -10,7 +10,7 @@ import java.util.Objects;
 public class Animal {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String name;
@@ -20,17 +20,17 @@ public class Animal {
     private String uniqueCharacteristics;
     private String specialNeeds;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "adopter_id")
     @JsonManagedReference
     private Adopter adopter;
 
-    @ManyToOne(fetch = FetchType.EAGER)                 //с FetchType.LAZY при получении приюта животного ошибка 500
+    @ManyToOne(fetch = FetchType.LAZY)                 //с FetchType.LAZY при получении приюта животного ошибка 500
     @JoinColumn(name = "shelter_id", nullable = false)                     // (name = "shelter_id", nullable = false)
     @JsonManagedReference
     private Shelter shelter;
 
-    @OneToOne(fetch = FetchType.EAGER)    // mappedBy = "animal",
+    @OneToOne(mappedBy = "animal", cascade = CascadeType.ALL)    // mappedBy = "animal",
 //    @JoinColumn(name = "probation_period_id")
     @JsonBackReference
     private ProbationPeriod probationPeriod;
