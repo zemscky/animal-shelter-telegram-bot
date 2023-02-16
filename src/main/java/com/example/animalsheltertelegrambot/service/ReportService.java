@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -119,10 +120,10 @@ public class ReportService {
         } else {
             MessageSender.sendMessage(chatId, "/sendReportFirstStep",
                     "К сожалению, Вы не являетесь усыновителем животного. " +
-                    "Пожалуйста, приезжайте в приют с необходимыми документами и выберите питомца. " +
-                    "Волонтёр зарегистрирует Вас в системе и Вы сможете отправлять отчёты. " +
-                    "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
-                    "Или запросите обратный звонок - /callback");
+                            "Пожалуйста, приезжайте в приют с необходимыми документами и выберите питомца. " +
+                            "Волонтёр зарегистрирует Вас в системе и Вы сможете отправлять отчёты. " +
+                            "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                            "Или запросите обратный звонок - /callback");
         }
     }
 
@@ -178,19 +179,19 @@ public class ReportService {
             report.setDate(LocalDate.now());
             report.setProbationPeriod(probPeriod);
         }
-            Report savedReport = reportRepository.save(report);
+        Report savedReport = reportRepository.save(report);
 
-            adopter.setCurrentReportId(savedReport.getId());
-            adopterRepository.save(adopter);
+        adopter.setCurrentReportId(savedReport.getId());
+        adopterRepository.save(adopter);
 
-            user.setUserStatus(UserStatus.FILLING_REPORT);
-            shelterUserRepository.save(user);
+        user.setUserStatus(UserStatus.FILLING_REPORT);
+        shelterUserRepository.save(user);
 
-            Animal animal = animalRepository.findById(animalId).orElseThrow();
+        Animal animal = animalRepository.findById(animalId).orElseThrow();
 
-            MessageSender.sendMessage(chatId, "/sendReportSecondStep",
-                    "Вы выбрали " + animal.getName() +
-                            ". Пришлите, пожалуйста, её/его фото.");
+        MessageSender.sendMessage(chatId, "/sendReportSecondStep",
+                "Вы выбрали " + animal.getName() +
+                        ". Пришлите, пожалуйста, её/его фото.");
     }
 
     public void sendReportThirdStep(Long chatId, PhotoSize[] photo) {
@@ -290,7 +291,7 @@ public class ReportService {
             return;
         }
         if (userMessage != null && report.getPhotoId() == null) {
-            MessageSender.sendMessage(chatId, "Не правильный порядок действий" ,"Не правильный порядок действий. Нужно сперва загрузить фотографию. Попробуете еще раз?",
+            MessageSender.sendMessage(chatId, "Не правильный порядок действий", "Не правильный порядок действий. Нужно сперва загрузить фотографию. Попробуете еще раз?",
                     MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
 
             user.setUserStatus(UserStatus.REPORT_YOU_WANNA_TRY_AGAIN);
@@ -340,8 +341,57 @@ public class ReportService {
         });
     }
 
-//    @Scheduled(cron = "0 00 10 * * *")
-    public void sendReminderIfNoReports() {
+
+    //Отправка комментария по отчету - обратная связь от волонтера если он ее оставил
+    @Scheduled(cron = "0 00 10 * * *") // каждый день в 10 утра
+    public void sendFeedbackReport() {
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+
+            List<ProbationPeriod> probationPeriods = adopter.getProbationPeriods().stream()
+                    .filter(probationPeriod -> probationPeriod.getEnds().isAfter(LocalDate.now())).toList();
+
+            for (ProbationPeriod probationPeriod : probationPeriods) {
+                if (probationPeriod.isNeedToSendVolunteersComment()) {
+                    MessageSender.sendMessage(adopter.getChatId(),
+                            "/feedbackReport",
+                            "Комментарий волонтера к вашему отчету за прошлый день:\n" +
+                                    probationPeriod.getVolunteersComment());
+                }
+            }
+        }
+    }
+
+    //Отправка напоминания о том, что не было отчета за сегодняшний день
+    @Scheduled(cron = "0 00 21 * * *")
+    public void sendReminderIfNoReportOneDay() {
+
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+
+            List<ProbationPeriod> probationPeriods = adopter.getProbationPeriods().stream()
+                    .filter(probationPeriod -> (probationPeriod.getEnds().isAfter(LocalDate.now())
+                            && (LocalDate.now()).isAfter(probationPeriod.getEnds().minusDays(30L))))
+                    .toList();
+
+            for (ProbationPeriod probationPeriod : probationPeriods) {
+                if (probationPeriod.getReports().stream()
+                        .filter(report -> report.getDate().isEqual(LocalDate.now()))
+                        .findFirst().isEmpty()) {
+
+                    MessageSender.sendMessage(adopter.getChatId(),
+                            "/ReminderIfNoReportsOneDay",
+                            "Здравствуйте! От Вас сегодня не было отчета.\n" +
+                                    "Напоминаем, что до 21:00 необходимо было отправить " +
+                                    "отчёт по питомцу. Ожидаем от Вас отчет. Спасибо!");
+                }
+            }
+        }
+    }
+
+    //Отправка напоминания о том, что отчетов не было 2 дня, и информация отправлена волонтеру
+    @Scheduled(cron = "0 00 21 * * *")
+    public void sendReminderIfNoReportsTwoDay() {
         // 1) Если два дня нет отчётов, то напоминание от бота
         //  и/или
         // 2) если у Adopter есть ProbationPeriod-ы, у которых поле
@@ -351,6 +401,28 @@ public class ReportService {
         //
         //Так как по ТЗ замечание для усыновителя пишет волонтёр, то
         // содержимое сообщения можно вручную вбить в бд чисто для теста метода
+
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+
+            List<ProbationPeriod> probationPeriods = adopter.getProbationPeriods().stream()
+                    .filter(probationPeriod -> (probationPeriod.getEnds().isAfter(LocalDate.now())
+                            && (LocalDate.now()).isAfter(probationPeriod.getEnds().minusDays(30L - 1L))))
+                    .toList();
+
+            for (ProbationPeriod probationPeriod : probationPeriods) {
+                List<Report> lastTwoDaysReports = probationPeriod.getReports().stream()
+                        .filter(report -> report.getDate().isAfter(LocalDate.now().minusDays(2L)))
+                        .toList();
+                if (lastTwoDaysReports.isEmpty()) {
+                    MessageSender.sendMessage(adopter.getChatId(),
+                            "/dailyReminderIfNoReportsTwoDay",
+                            "Здравствуйте! От Вас не было отчетов уже 2 дня.\n" +
+                                    "Мы направляем эту информацию волонтеру для связи с Вами " +
+                                    "и ждем от Вас отчёт по питомцу. Спасибо!");
+                }
+            }
+        }
     }
 
     //    @Scheduled(cron = "0 00 10 * * *")
