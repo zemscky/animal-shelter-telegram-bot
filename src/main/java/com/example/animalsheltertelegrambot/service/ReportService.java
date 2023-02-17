@@ -1,35 +1,40 @@
 package com.example.animalsheltertelegrambot.service;
 
 import com.example.animalsheltertelegrambot.models.*;
-import com.example.animalsheltertelegrambot.repositories.AdopterRepository;
-import com.example.animalsheltertelegrambot.repositories.ProbationPeriodRepository;
-import com.example.animalsheltertelegrambot.repositories.ReportRepository;
-import com.example.animalsheltertelegrambot.repositories.ShelterUserRepository;
+import com.example.animalsheltertelegrambot.repositories.*;
 import com.pengrad.telegrambot.model.PhotoSize;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Transactional
 @Service
 public class ReportService {
+
+//    Logger logger = LoggerFactory.getLogger(ReportService.class);
+
     private final ShelterUserRepository shelterUserRepository;
     private final AdopterRepository adopterRepository;
     private final ReportRepository reportRepository;
     private final ProbationPeriodRepository probationPeriodRepository;
+    private final AnimalRepository animalRepository;
 
-    public ReportService(ShelterUserRepository shelterUserRepository, AdopterRepository adopterRepository, ReportRepository reportRepository, ProbationPeriodRepository probationPeriodRepository) {
+    public ReportService(ShelterUserRepository shelterUserRepository, AdopterRepository adopterRepository, ReportRepository reportRepository, ProbationPeriodRepository probationPeriodRepository, AnimalRepository animalRepository) {
         this.shelterUserRepository = shelterUserRepository;
         this.adopterRepository = adopterRepository;
         this.reportRepository = reportRepository;
         this.probationPeriodRepository = probationPeriodRepository;
+        this.animalRepository = animalRepository;
     }
 
-    public boolean isSendReportCommand(String userMessage, Long chatId) {
-        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow(RuntimeException::new);
+    public boolean isSendReportCommand(String userMessage) {
         return userMessage.equals("/sendReport");
     }
 
@@ -37,47 +42,88 @@ public class ReportService {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         if (userIsAdopter(user.getUsername())) {
 
-            Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
-            if (adopter.getProbationPeriod() == null) {
-                ProbationPeriod probationPeriod = new ProbationPeriod();
-                probationPeriod.setEnds(LocalDate.now().plusDays(30));
+            Adopter adopter = adopterRepository.findAdopterByUsername(
+                    user.getUsername()).orElseThrow();
 
-                adopter.setProbationPeriod(probationPeriod);
-                probationPeriod.setAdopter(adopter);
+            if (adopter.getProbationPeriods().isEmpty() ||
+                    adopter.getAnimals().isEmpty()) {
 
-                probationPeriodRepository.save(probationPeriod);
+                MessageSender.sendMessage(chatId, "Что-то пошло не так! За Вами " +
+                        "не закреплён питомец и/или не назначен испытательный срок!" +
+                        "Свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                        "Или запросите обратный звонок - /callback. Приносим свои " +
+                        "извинения.");
+                return;
+            }
+
+            if (adopter.getChatId() == null || !adopter.getChatId().equals(chatId)) {
+                adopter.setChatId(chatId);
                 adopterRepository.save(adopter);
+            }
 
-            } else if (reportRepository.existsByProbationPeriodAndDate(
-                    adopter.getProbationPeriod(),
-                    LocalDate.now()
-            )) {
-                MessageSender.sendMessage(chatId, "Вы уже отправили сегодняшний отчёт. " +
-                        "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день. " +
+            List<Animal> chosenSheltersAnimals = new ArrayList<>();
+            for (Animal a : adopter.getAnimals()) {
+                if (a.getShelter().getShelterType() == user.getShelterType()) {
+                    chosenSheltersAnimals.add(a);
+                }
+            }
+            if (chosenSheltersAnimals.isEmpty()) {
+                MessageSender.sendMessage(chatId, "Я вижу, что питомец(ы), которых Вы забрали, - " +
+                        "не из выбранного Вами сейчас приюта. Пожалуйста, нажмите /start, " +
+                        "чтобы выбрать нужный приют. " +
                         "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
                         "Или запросите обратный звонок - /callback");
                 return;
             }
 
-            user.setUserStatus(UserStatus.FILLING_REPORT);
-            shelterUserRepository.save(user);
+            List<Animal> unexpired = new ArrayList<>();
+            for (Animal a : chosenSheltersAnimals) {
+                if (!a.getProbationPeriod().getEnds().isBefore(LocalDate.now())) {
+                    unexpired.add(a);
+                }
+            }
+            if (unexpired.isEmpty()) {
+                MessageSender.sendMessage(chatId, "Ваши испытательный(е) срок(и) " +
+                        "окончены! Вам больше не нужно отправлять отчёты. " +
+                        "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                        "Или запросите обратный звонок - /callback");
+                return;
+            }
 
-            MessageSender.sendMessage(chatId, "/sendReport",
+            List<String> buttonNames = new ArrayList<>();
+            for (Animal a : unexpired) {
+                String s = "№" + a.getId() + " " + a.getName();
+                buttonNames.add(s);
+            }
+
+            InlineKeyboardMarkup keyboardMarkup = MenuService.createMenuDoubleButtons(
+                    buttonNames.toArray(new String[0])
+            );
+
+            MessageSender.sendMessage(chatId, "/sendReportFirstStep",
                     "Отлично, приступим!\n" +
-                            "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день каждый день " +
-                            "до 21:00.\n" +
-                            "В качестве отчёта Вам необходимо прислать в первом сообщении " +
-                            "фото питомца, а во втором - как можно более подробное описание:\n" +
+                            "Обращаем Ваше внимание, что отчёт нужно заполнять только " +
+                            "один раз в день каждый день до 21:00.\n" +
+                            "Следуя инструкциям бота, в качестве отчёта Вам необходимо " +
+                            "прислать в первом сообщении фото питомца, а во втором - " +
+                            "как можно более подробное описание:\n" +
                             "- рациона животного,\n" +
                             "- общего самочувствия и привыкания к новому месту,\n" +
-                            "- изменений в поведении: отказ от старых привычек, приобретение новых.\n" +
-                            "Сначала пришлите, пожалуйста, фото.");
+                            "- изменений в поведении: отказ от старых привычек, приобретение " +
+                            "новых.\n" +
+                            "Сначала выберите, пожалуйста, питомца, о котором собираетесь " +
+                            "отправить отчёт.",
+                    keyboardMarkup);
+
+            user.setUserStatus(UserStatus.CHOOSING_PET_FOR_REPORT);
+            shelterUserRepository.save(user);
         } else {
-            MessageSender.sendMessage(chatId, "К сожалению, Вы не являетесь усыновителем животного. " +
-                    "Пожалуйста, приезжайте в приют с необходимыми документами и выберите питомца. " +
-                    "Волонтёр зарегистрирует Вас в системе и Вы сможете отправлять отчёты. " +
-                    "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
-                    "Или запросите обратный звонок - /callback");
+            MessageSender.sendMessage(chatId, "/sendReportFirstStep",
+                    "К сожалению, Вы не являетесь усыновителем животного. " +
+                            "Пожалуйста, приезжайте в приют с необходимыми документами и выберите питомца. " +
+                            "Волонтёр зарегистрирует Вас в системе и Вы сможете отправлять отчёты. " +
+                            "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                            "Или запросите обратный звонок - /callback");
         }
     }
 
@@ -85,7 +131,70 @@ public class ReportService {
         return adopterRepository.findAdopterByUsername(username).isPresent();
     }
 
-    public void sendReportSecondStep(Long chatId, PhotoSize[] photo) {
+    public void sendReportSecondStep(Long chatId, String callbackData) {
+        ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+
+        if (!callbackData.startsWith("№")) {
+            resetUsersShelterTypeAndCancel(chatId, user);
+            return;
+        }
+
+        String animalIdString = callbackData.substring(1,
+                callbackData.indexOf(" "));
+        Long animalId = Long.parseLong(animalIdString);
+
+        Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
+        ProbationPeriod probPeriod = probationPeriodRepository.findByAnimal_Id(animalId);
+
+        Report report;
+        if (reportRepository.existsByProbationPeriodAndDate(
+                probPeriod, LocalDate.now())) {
+            report = reportRepository.findReportByProbationPeriodAndDate(
+                    probPeriod, LocalDate.now()).orElseThrow();
+            if (report.getEntry() != null && report.getPhotoId() != null) {
+                MessageSender.sendMessage(chatId, "Вы уже отправили сегодняшний " +
+                        "отчёт по выбранному питомцу. " +
+                        "Обращаем Ваше внимание, что отчёт нужно заполнять один раз в день. " +
+                        "Если произошла ошибка, свяжитесь, пожалуйста, с волонтёром - /volunteer. " +
+                        "Или запросите обратный звонок - /callback");
+                user.setUserStatus(UserStatus.JUST_USING);
+                shelterUserRepository.save(user);
+                return;
+            }
+            if (report.getPhotoId() != null && report.getEntry() == null) {
+                MessageSender.sendMessage(chatId, "Фото для данного " +
+                        "отчёта уже было получено.\n" +
+                        "Напишите, пожалуйста, письменный отчёт. " +
+                        "В нём должно быть как можно более подробное описание:\n" +
+                        "- рациона животного,\n" +
+                        "- общего самочувствия и привыкания к новому месту,\n" +
+                        "- изменений в поведении: отказ от старых привычек, приобретение " +
+                        "новых.");
+                user.setUserStatus(UserStatus.FILLING_REPORT);
+                shelterUserRepository.save(user);
+                return;
+            }
+        } else {
+            report = new Report();
+            report.setDate(LocalDate.now());
+            report.setProbationPeriod(probPeriod);
+        }
+        Report savedReport = reportRepository.save(report);
+
+        adopter.setCurrentReportId(savedReport.getId());
+        adopterRepository.save(adopter);
+
+        user.setUserStatus(UserStatus.FILLING_REPORT);
+        shelterUserRepository.save(user);
+
+        Animal animal = animalRepository.findById(animalId).orElseThrow();
+
+        MessageSender.sendMessage(chatId, "/sendReportSecondStep",
+                "Вы выбрали " + animal.getName() +
+                        ". Пришлите, пожалуйста, её/его фото.");
+    }
+
+    public void sendReportThirdStep(Long chatId, PhotoSize[] photo) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
@@ -95,57 +204,57 @@ public class ReportService {
                 .orElse(null)
                 .fileId();
 
-        Report report = new Report();
-        report.setDate(LocalDate.now());
+        Report report = reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
         report.setPhotoId(photoId);
-        report.setProbationPeriod(adopter.getProbationPeriod());
-
-        reportRepository.save(report);
-
-        Report savedReport = reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(),
-                LocalDate.now()
-        ).orElseThrow();
+        Report savedReport = reportRepository.save(report);
 
         SendPhoto sendPhoto = new SendPhoto(chatId, savedReport.getPhotoId());
         MessageSender.sendPhoto(sendPhoto);
         MessageSender.sendMessage(chatId,
+                "/sendReportThirdStep",
                 "Спасибо! Фото получено.\n" +
                         "Теперь пришлите, пожалуйста, письменный отчёт.");
     }
 
-    public void sendReportThirdStep(Long chatId, String messageText) {
+    public void sendReportFourthStep(Long chatId, String messageText) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
 
-        Report report = reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(),
-                LocalDate.now()
-        ).orElse(new Report());
-
+        Report report = reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
         report.setEntry(messageText);
-        report.setProbationPeriod(adopter.getProbationPeriod());
-        reportRepository.save(report);
-
-        Report savedReport = reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(),
-                LocalDate.now()
-        ).orElseThrow();
+        Report savedReport = reportRepository.save(report);
 
         SendPhoto sendPhoto = new SendPhoto(chatId, savedReport.getPhotoId());
         SendMessage sendMessage = new SendMessage(chatId, savedReport.getEntry());
 
-        MessageSender.sendMessage(chatId, "Спасибо! Отчёт принят, и выглядит он вот так.");
+        MessageSender.sendMessage(chatId,
+                "/sendReportFourthStep",
+                "Спасибо! Отчёт принят, и выглядит он вот так.");
         MessageSender.sendPhoto(sendPhoto);
         MessageSender.sendMessage(sendMessage);
 
         user.setUserStatus(UserStatus.JUST_USING);
         shelterUserRepository.save(user);
+
+        adopter.setCurrentReportId(null);
+        adopterRepository.save(adopter);
+    }
+
+    public void resetUsersShelterTypeAndCancel(Long chatId, ShelterUser user) {
+        user.setUserStatus(UserStatus.JUST_USING);
+        shelterUserRepository.save(user);
+        MessageSender.sendMessage(chatId, "/sendReportSecondStep",
+                "Вы не выбрали животное. Чтобы попробовать ещё раз, " +
+                        "пожалуйста, начните сначала, нажав на кнопку " +
+                        "'Отправить отчёт' " +
+                        "выше или сюда -> /start");
     }
 
     public static boolean isReportStatus(ShelterUser user) {
         UserStatus status = user.getUserStatus();
-        if (status == UserStatus.FILLING_REPORT || status == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
+        if (status == UserStatus.FILLING_REPORT ||
+                status == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN ||
+                status == UserStatus.CHOOSING_PET_FOR_REPORT) {
             return true;
         }
         return false;
@@ -153,21 +262,21 @@ public class ReportService {
 
     public void reportHandler(Long chatId, String userMessage, PhotoSize[] photoSize) {
         ShelterUser user = shelterUserRepository.findById(chatId).orElseThrow();
+
         if (user.getUserStatus() == UserStatus.REPORT_YOU_WANNA_TRY_AGAIN) {
             sendTryAgainMessage(chatId, userMessage, user);
             return;
         }
+        if (user.getUserStatus() == UserStatus.CHOOSING_PET_FOR_REPORT) {
+            resetUsersShelterTypeAndCancel(chatId, user);
+            return;
+        }
 
         Adopter adopter = adopterRepository.findAdopterByUsername(user.getUsername()).orElseThrow();
-
-        Report report = this.reportRepository.findReportByProbationPeriodAndDate(
-                adopter.getProbationPeriod(), LocalDate.now()).
-                orElse(new Report());
-        report.setDate(LocalDate.now());
-        report.setProbationPeriod(adopter.getProbationPeriod());
+        Report report = this.reportRepository.findById(adopter.getCurrentReportId()).orElseThrow();
 
         if (photoSize != null && report.getPhotoId() == null) {
-            sendReportSecondStep(chatId, photoSize);
+            sendReportThirdStep(chatId, photoSize);
             return;
         }
         if (userMessage != null && report.getPhotoId() != null) {
@@ -178,11 +287,21 @@ public class ReportService {
                 shelterUserRepository.save(user);
                 return;
             }
-            sendReportThirdStep(chatId, userMessage);
+            sendReportFourthStep(chatId, userMessage);
             return;
         }
         if (userMessage != null && report.getPhotoId() == null) {
-            MessageSender.sendMessage(chatId, "Не правильный порядок действий" ,"Не правильный порядок действий. Нужно сперва загрузить фотографию. Попробуете еще раз?",
+            MessageSender.sendMessage(chatId, "Не правильный порядок действий", "Не правильный порядок действий. Нужно сперва загрузить фотографию. Попробуете еще раз?",
+                    MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
+
+            user.setUserStatus(UserStatus.REPORT_YOU_WANNA_TRY_AGAIN);
+            shelterUserRepository.save(user);
+        }
+        if (photoSize != null && report.getPhotoId() != null) {
+            MessageSender.sendMessage(chatId, "Фото уже есть",
+                    "Фото для данного отчёта уже было получено. Необходимо " +
+                            "отправить письменный отчёт. Попробуете отправить письменный " +
+                            "отчёт еще раз?",
                     MenuService.createMenuDoubleButtons(MenuService.YES, MenuService.NO));
 
             user.setUserStatus(UserStatus.REPORT_YOU_WANNA_TRY_AGAIN);
@@ -200,7 +319,128 @@ public class ReportService {
             shelterUserRepository.save(user);
             MessageSender.sendMessage(chatId, "Нет? Тогда вернёмся к этому вопросу позже. Если нужно вернуться в начальное меню, используйте /start");
         }
-
     }
 
+    @Scheduled(cron = "0 00 10 * * *") // каждый день в 10 утра
+    public void sendDailyReportReminder() {
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+            if (adopter.getProbationPeriods().stream().allMatch(
+                    probationPeriod -> probationPeriod.getEnds().isBefore(
+                            LocalDate.now()
+                    )
+            )) {
+                allAdopters.remove(adopter);
+            }
+        }
+        allAdopters.forEach(adopter -> {
+            MessageSender.sendMessage(adopter.getChatId(),
+                    "/dailyReportNotification",
+                    "Доброе утро! Напоминаем, что до 21:00 необходимо отправить " +
+                            "отчёт(ы) по питомцу(ам). Спасибо!");
+        });
+    }
+
+
+    //Отправка комментария по отчету - обратная связь от волонтера если он ее оставил
+    @Scheduled(cron = "0 00 10 * * *") // каждый день в 10 утра
+    public void sendFeedbackReport() {
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+
+            List<ProbationPeriod> probationPeriods = adopter.getProbationPeriods().stream()
+                    .filter(probationPeriod -> probationPeriod.getEnds().isAfter(LocalDate.now())).toList();
+
+            for (ProbationPeriod probationPeriod : probationPeriods) {
+                if (probationPeriod.isNeedToSendVolunteersComment()) {
+                    MessageSender.sendMessage(adopter.getChatId(),
+                            "/feedbackReport",
+                            "Комментарий волонтера к вашему отчету за прошлый день:\n" +
+                                    probationPeriod.getVolunteersComment());
+                }
+            }
+        }
+    }
+
+    //Отправка напоминания о том, что не было отчета за сегодняшний день
+    @Scheduled(cron = "0 00 21 * * *")
+    public void sendReminderIfNoReportOneDay() {
+
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+
+            List<ProbationPeriod> probationPeriods = adopter.getProbationPeriods().stream()
+                    .filter(probationPeriod -> (probationPeriod.getEnds().isAfter(LocalDate.now())
+                            && (LocalDate.now()).isAfter(probationPeriod.getEnds().minusDays(30L))))
+                    .toList();
+
+            for (ProbationPeriod probationPeriod : probationPeriods) {
+                if (probationPeriod.getReports().stream()
+                        .filter(report -> report.getDate().isEqual(LocalDate.now()))
+                        .findFirst().isEmpty()) {
+
+                    MessageSender.sendMessage(adopter.getChatId(),
+                            "/ReminderIfNoReportsOneDay",
+                            "Здравствуйте! От Вас сегодня не было отчета.\n" +
+                                    "Напоминаем, что до 21:00 необходимо было отправить " +
+                                    "отчёт по питомцу. Ожидаем от Вас отчет. Спасибо!");
+                }
+            }
+        }
+    }
+
+    //Отправка напоминания о том, что отчетов не было 2 дня, и информация отправлена волонтеру
+    @Scheduled(cron = "0 00 21 * * *")
+    public void sendReminderIfNoReportsTwoDay() {
+        // 1) Если два дня нет отчётов, то напоминание от бота
+        //  и/или
+        // 2) если у Adopter есть ProbationPeriod-ы, у которых поле
+        // boolean needToSendVolunteersComment равен true, то надо отправить
+        // сообщение волонтёра (String volunteersComment)
+        // ??можно соединить, можно разделить на 2 метода??
+        //
+        //Так как по ТЗ замечание для усыновителя пишет волонтёр, то
+        // содержимое сообщения можно вручную вбить в бд чисто для теста метода
+
+        Collection<Adopter> allAdopters = adopterRepository.findAllWithExistingChatId();
+        for (Adopter adopter : allAdopters) {
+
+            List<ProbationPeriod> probationPeriods = adopter.getProbationPeriods().stream()
+                    .filter(probationPeriod -> (probationPeriod.getEnds().isAfter(LocalDate.now())
+                            && (LocalDate.now()).isAfter(probationPeriod.getEnds().minusDays(30L - 1L))))
+                    .toList();
+
+            for (ProbationPeriod probationPeriod : probationPeriods) {
+                List<Report> lastTwoDaysReports = probationPeriod.getReports().stream()
+                        .filter(report -> report.getDate().isAfter(LocalDate.now().minusDays(2L)))
+                        .toList();
+                if (lastTwoDaysReports.isEmpty()) {
+                    MessageSender.sendMessage(adopter.getChatId(),
+                            "/dailyReminderIfNoReportsTwoDay",
+                            "Здравствуйте! От Вас не было отчетов уже 2 дня.\n" +
+                                    "Мы направляем эту информацию волонтеру для связи с Вами " +
+                                    "и ждем от Вас отчёт по питомцу. Спасибо!");
+                }
+            }
+        }
+    }
+
+    //    @Scheduled(cron = "0 00 10 * * *")
+    public void sendCongratulations() {
+        // Если у Adopter есть успешно законченный ProbationPeriod, то надо
+        // отправить поздравление
+    }
+
+    //    @Scheduled(cron = "0 00 10 * * *")
+    public void sendRefusal() {
+        // Если Adopter не прошёл ProbationPeriod, то надо
+        // отправить уведомление и инфу, что делать дальше
+    }
+
+    //    @Scheduled(cron = "0 00 10 * * *")
+    public void sendProlongationNotification() {
+        // Если у Adopter продлён ProbationPeriod, то надо
+        // отправить уведомление об этом
+        // ?? может быть, добавить ещё поле boolean в ProbationPeriod ??
+    }
 }

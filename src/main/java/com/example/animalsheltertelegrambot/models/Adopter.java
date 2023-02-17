@@ -3,13 +3,14 @@ package com.example.animalsheltertelegrambot.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
 public class Adopter {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private Long chatId;
@@ -19,14 +20,17 @@ public class Adopter {
     private int age;
     private String telephoneNumber;
 
-    @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
+    @OneToMany(mappedBy = "adopter", fetch = FetchType.LAZY)
+//    @JoinColumn
     @JsonBackReference
-    private Animal animal;
+    private List<Animal> animals;
 
-    @OneToOne(fetch = FetchType.EAGER, mappedBy = "adopter")
-    @JoinColumn
+    @OneToMany(mappedBy = "adopter", fetch = FetchType.LAZY)
+//    @JoinColumn
     @JsonBackReference
-    private ProbationPeriod probationPeriod = new ProbationPeriod();
+    private List<ProbationPeriod> probationPeriods;
+
+    private Long currentReportId;
 
     public Adopter() {
     }
@@ -47,6 +51,10 @@ public class Adopter {
         return address;
     }
 
+    public Long getCurrentReportId() {
+        return currentReportId;
+    }
+
     public int getAge() {
         return age;
     }
@@ -55,16 +63,16 @@ public class Adopter {
         return telephoneNumber;
     }
 
-    public Animal getAnimal() {
-        return animal;
+    public List<Animal> getAnimals() {
+        return animals;
+    }
+
+    public List<ProbationPeriod> getProbationPeriods() {
+        return probationPeriods;
     }
 
     public String getUsername() {
         return username;
-    }
-
-    public ProbationPeriod getProbationPeriod() {
-        return probationPeriod;
     }
 
     public void setId(long id) {
@@ -91,20 +99,20 @@ public class Adopter {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public void setAnimals(Animal animal) {
-        this.animal = animal;
+    public void setCurrentReportId(Long currentReportId) {
+        this.currentReportId = currentReportId;
+    }
+
+    public void setAnimals(List<Animal> animals) {
+        this.animals = animals;
+    }
+
+    public void setProbationPeriods(List<ProbationPeriod> probationPeriods) {
+        this.probationPeriods = probationPeriods;
     }
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public void setAnimal(Animal animal) {
-        this.animal = animal;
-    }
-
-    public void setProbationPeriod(ProbationPeriod probationPeriod) {
-        this.probationPeriod = probationPeriod;
     }
 
     @Override

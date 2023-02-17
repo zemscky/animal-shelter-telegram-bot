@@ -25,16 +25,13 @@ public class InfoMessageService {
         AnimalInfoMessage infoMessage = (AnimalInfoMessage) getRepository(chatId).findById(tag).orElseThrow(RuntimeException::new);
         MessageSender.sendMessage(chatId, tag, infoMessage.getText());
         if (tag.equals("/addressandschedule")) {
-//            MessageSender.sendPhoto(chatId,
-//                    "Схема проезда к нашему приюту",
-//                    "images/shelter/shelter_cat_and_dog_location.jpg");
             ShelterType shelterType = shelterUserRepository.findById(chatId).orElseThrow().getShelterType();
             Shelter shelter = shelterRepository.findByShelterType(shelterType).get();
             LocationMap locationMap = locationMapRepository.findByShelterNumber(shelter.getNumber()).get();
             MessageSender.sendAddress(chatId, shelter);
             String imagePath = locationMap.getFilePath();
-//            MessageSender.sendPhoto(chatId, "Схема проезда к нашему приюту", imagePath);
-            MessageSender.sendPhoto(chatId, "Схема проезда к нашему приюту", "images/shelter/shelter_cat_and_dog_location.jpg");
+            MessageSender.sendPhotoDbLinkLocal(chatId, "Схема проезда к нашему приюту " +
+                    "'" + shelter.getName() + "'", imagePath);
         }
     }
 

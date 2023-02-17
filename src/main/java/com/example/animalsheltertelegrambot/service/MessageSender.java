@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 
@@ -88,6 +87,7 @@ public class MessageSender {
         telegramBot.execute(sendMessage);
     }
 
+    //Метод отправки фото в чат из директории проекта resources
     public static void sendPhoto(Long chatId, String caption, String imagePath) {
         try {
             File image = ResourceUtils.getFile("classpath:" + imagePath);
@@ -99,15 +99,17 @@ public class MessageSender {
         }
     }
 
-    //Возможно это будет метод загрузки файла по пути из БД с локального диска
-    public static void sendPhotoMessage(Long chatId, String caption, String imagePath) {
-        try {
-            File image = ResourceUtils.getFile("classpath:" + imagePath);
-//            FileInputStream image = new FileInputStream(new File(imagePath));
-            SendPhoto sendPhoto = new SendPhoto(chatId, image);
+    //Метод отправки в чат фото с локального диска по пути, хранящемуся в БД
+    public static void sendPhotoDbLinkLocal(Long chatId, String caption, String imagePath) {
+        File locationMap = new File(imagePath);
+        if (locationMap.isFile()) {
+            SendPhoto sendPhoto = new SendPhoto(chatId, new File(imagePath));
+            sendPhoto.caption(caption);
             telegramBot.execute(sendPhoto);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } else {
+            sendMessage(chatId, "К сожалению схема проезда к приюту пока не загружена.\n" +
+                    "Схема проезда к головному офису приютов:");
+            sendPhoto(chatId, "", "images/shelter/shelter_main_location.jpg");
         }
     }
 
@@ -119,6 +121,7 @@ public class MessageSender {
                                 "Телефон: " + shelter.getTelephoneNumber() + "\n" +
                                 "Расписание: " + shelter.getTimetable()));
     }
+
     public static void sendPhoto(SendPhoto sendPhoto) {
         telegramBot.execute(sendPhoto);
     }
